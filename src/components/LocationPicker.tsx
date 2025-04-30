@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Button } from '@/components/ui/button';
@@ -226,7 +225,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, initi
           onClick={getCurrentLocation} 
           disabled={!isLoaded || isGettingCurrentLocation} 
           type="button"
-          variant="primary"
+          variant="default"
           className="bg-primary text-white"
         >
           {isGettingCurrentLocation ? (
