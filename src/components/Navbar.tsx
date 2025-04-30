@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
@@ -24,10 +23,10 @@ const Navbar: React.FC = () => {
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
-                S
+                B
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Sip-n-Dash
+                BarRush
               </span>
             </Link>
           </div>
@@ -40,11 +39,17 @@ const Navbar: React.FC = () => {
               Home
             </Link>
             <Link 
+              to="/" 
+              className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/recipes')}`}
+            >
+              Cocktail Recipes
+            </Link>
+            <Link 
               to="/categories" 
               className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/categories')}`}
             >
               <Grid3X3 size={16} />
-              Categories
+              Shop
             </Link>
             <Link 
               to="/offers" 
@@ -100,7 +105,15 @@ const Navbar: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <Grid3X3 size={18} />
-              Categories
+              Shop
+            </Link>
+            <Link 
+              to="/categories" 
+              className={`block px-3 py-2 rounded-md text-base font-medium hover:text-primary hover:bg-gray-50 flex items-center gap-2 ${isActive('/recipes')}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Grid3X3 size={18} />
+              Cocktail Recipes
             </Link>
             <Link 
               to="/offers" 
