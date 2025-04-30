@@ -23,6 +23,9 @@ const mapContainerStyle = {
   height: '300px'
 };
 
+// In Vite, environment variables are accessed via import.meta.env
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+
 const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, initialAddress }) => {
   const [address, setAddress] = useState(initialAddress || '');
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
@@ -34,7 +37,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, initi
   // Load Google Maps JS API
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',  // Replace with your API key or use env variable
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   });
 
   // Initialize map and geocoder
@@ -118,6 +121,29 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, initi
 
   if (loadError) {
     return <div className="p-4 text-red-500">Error loading Google Maps</div>;
+  }
+
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 text-yellow-800 rounded">
+        <p className="font-medium">Google Maps API Key Required</p>
+        <p className="text-sm mt-1">
+          Please add your Google Maps API key to use the location picker.
+          Set it as VITE_GOOGLE_MAPS_API_KEY in your environment variables.
+        </p>
+        <div className="mt-3">
+          <Input
+            value={address}
+            onChange={(e) => {
+              setAddress(e.target.value);
+              onLocationSelect(e.target.value, 0, 0);
+            }}
+            placeholder="Enter your address manually"
+            className="w-full"
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
