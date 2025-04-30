@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import LocationPicker from '@/components/LocationPicker';
 
 const Checkout: React.FC = () => {
   const { items, cartTotal, clearCart } = useCart();
@@ -17,6 +18,8 @@ const Checkout: React.FC = () => {
     email: '',
     phone: '',
     address: '',
+    latitude: 0,
+    longitude: 0,
     city: '',
     zipCode: ''
   });
@@ -27,12 +30,21 @@ const Checkout: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const handleLocationSelect = (address: string, lat: number, lng: number) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      address,
+      latitude: lat,
+      longitude: lng
+    }));
+  };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form fields
-    const requiredFields = ['name', 'email', 'phone', 'address', 'city', 'zipCode'];
+    const requiredFields = ['name', 'email', 'phone', 'address'];
     const emptyFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
     
     if (emptyFields.length > 0) {
@@ -110,37 +122,11 @@ const Checkout: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input 
-                  id="address" 
-                  name="address" 
-                  placeholder="123 Main St" 
-                  value={formData.address} 
-                  onChange={handleChange} 
+                <Label htmlFor="address">Delivery Location</Label>
+                <LocationPicker
+                  onLocationSelect={handleLocationSelect}
+                  initialAddress={formData.address}
                 />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input 
-                    id="city" 
-                    name="city" 
-                    placeholder="New York" 
-                    value={formData.city} 
-                    onChange={handleChange} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="zipCode">Zip Code</Label>
-                  <Input 
-                    id="zipCode" 
-                    name="zipCode" 
-                    placeholder="10001" 
-                    value={formData.zipCode} 
-                    onChange={handleChange} 
-                  />
-                </div>
               </div>
               
               <div className="pt-4">
