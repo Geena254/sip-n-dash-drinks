@@ -7,8 +7,8 @@ import { MapPin, Loader2, Navigation, Search } from 'lucide-react';
 
 // Default center position (can be changed based on user's location)
 const defaultCenter = {
-  lat: 6.5244,  // Nigeria coordinates as default (more central for many users)
-  lng: 3.3792
+  lat: -3.6305,  // Kilifi, Kenya coordinates
+  lng: 39.8499
 };
 
 // Libraries to load with Google Maps
@@ -77,6 +77,38 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   }, [initialCoordinates]);
 
   // Get user's current location with improved error handling and timeout
+  const reverseGeocode = useCallback((lat: number, lng: number) => {
+    if (!geocoderRef.current) {
+      setIsGettingCurrentLocation(false);
+      return;
+    }
+    
+    geocoderRef.current.geocode(
+      { location: { lat, lng } },
+      (results, status) => {
+        setIsGettingCurrentLocation(false);
+        
+        if (status === "OK" && results && results[0]) {
+          const formattedAddress = results[0].formatted_address;
+          setAddress(formattedAddress);
+          onLocationSelect(formattedAddress, lat, lng);
+          
+          toast({
+            title: "Location Updated",
+            description: "Your location has been set successfully",
+          });
+        } else {
+          toast({
+            title: "Address Lookup Failed",
+            description: "We found your location but couldn't determine the address. You can enter it manually.",
+            variant: "destructive"
+          });
+          onLocationSelect("Unknown Address", lat, lng);
+        }
+      }
+    );
+  }, [onLocationSelect, toast]);
+
   const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       toast({
@@ -189,40 +221,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         maximumAge: 0
       }
     );
-  }, [onLocationSelect, toast]);
-  
-  // Helper function to reverse geocode
-  const reverseGeocode = useCallback((lat: number, lng: number) => {
-    if (!geocoderRef.current) {
-      setIsGettingCurrentLocation(false);
-      return;
-    }
-    
-    geocoderRef.current.geocode(
-      { location: { lat, lng } },
-      (results, status) => {
-        setIsGettingCurrentLocation(false);
-        
-        if (status === "OK" && results && results[0]) {
-          const formattedAddress = results[0].formatted_address;
-          setAddress(formattedAddress);
-          onLocationSelect(formattedAddress, lat, lng);
-          
-          toast({
-            title: "Location Updated",
-            description: "Your location has been set successfully",
-          });
-        } else {
-          toast({
-            title: "Address Lookup Failed",
-            description: "We found your location but couldn't determine the address. You can enter it manually.",
-            variant: "destructive"
-          });
-          onLocationSelect("Unknown Address", lat, lng);
-        }
-      }
-    );
-  }, [onLocationSelect, toast]);
+  }, [onLocationSelect, reverseGeocode, toast]);
 
   // Try to get user location on initial load, but only if no initial data is provided
   useEffect(() => {

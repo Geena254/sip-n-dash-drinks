@@ -23,12 +23,29 @@ const Checkout: React.FC = () => {
     latitude: 0,
     longitude: 0,
     city: '',
-    zipCode: ''
+    zipCode: '',
+    paymentMethod: '',
+    deliveryArea: 'Bofa'  
   });
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const deliveryAreas = [
+    { name: 'Mnarani', price: 1.50 },
+    { name: 'Bofa', price: 2.00 },
+    { name: 'Tezo', price: 2.50 },
+    { name: 'Mtondia', price: 3.00 },
+  ];
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState({
+    mpesaNumber: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCVC: '',
+  });
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -57,6 +74,15 @@ const Checkout: React.FC = () => {
       });
       return;
     }
+
+    if (!selectedPayment) {
+      toast({
+        title: "Select a payment method",
+        description: "Please choose how you'd like to pay.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Process order
     setIsSubmitting(true);
@@ -74,7 +100,8 @@ const Checkout: React.FC = () => {
   };
   
   // Calculate delivery fee and tax
-  const deliveryFee = 3.99;
+  const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
+  const deliveryFee = selectedArea ? selectedArea.price : 0;
   const tax = cartTotal * 0.08;
   const total = cartTotal + deliveryFee + tax;
   
@@ -119,7 +146,6 @@ const Checkout: React.FC = () => {
                     />
                   </div>
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
                   <Input 
@@ -138,6 +164,31 @@ const Checkout: React.FC = () => {
                     onLocationSelect={handleLocationSelect}
                     initialAddress={formData.address}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <div className="flex gap-4">
+                    {[
+                      { type: 'mpesa', label: 'MPESA', icon: '/icons/mpesa.png' },
+                      { type: 'card', label: 'Card', icon: '/icons/card.png' },
+                      { type: 'cash', label: 'Cash', icon: '/icons/cash.png' },
+                    ].map(({ type, label, icon }) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPayment(type);
+                          if (type !== 'cash') setShowPaymentModal(true);
+                        }}
+                        className={`p-3 border rounded-lg flex flex-col items-center justify-center w-24 transition-all ${
+                          selectedPayment === type ? 'border-primary bg-primary/10' : 'border-gray-200'
+                        }`}
+                      >
+                        <img src={icon} alt={label} className="w-6 h-6 mb-1" />
+                        <span className="text-sm">{label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 
                 <div className="pt-4">
@@ -205,7 +256,22 @@ const Checkout: React.FC = () => {
                   <span className="text-primary">${total.toFixed(2)}</span>
                 </div>
               </div>
-
+              <div className="border-t mt-6 pt-4 space-y-3">
+              <Label htmlFor="deliveryArea">Select Delivery Area</Label>
+                <select
+                  id="deliveryArea"
+                  name="deliveryArea"
+                  value={formData.deliveryArea}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  {deliveryAreas.map(area => (
+                    <option key={area.name} value={area.name}>
+                      {area.name} - ${area.price.toFixed(2)}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="mt-6 bg-primary/5 p-4 rounded-md">
                 <p className="text-sm font-medium text-primary">Estimated Delivery Time</p>
                 <p className="text-sm text-muted-foreground">20-45 minutes from order time</p>
@@ -214,8 +280,81 @@ const Checkout: React.FC = () => {
           </Card>
         </div>
       </div>
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg relative">
+            <button
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute top-2 right-3 text-gray-500 hover:text-black"
+            >
+              ✕
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Enter {selectedPayment === 'mpesa' ? 'MPESA' : 'Card'} Details</h2>
+            {selectedPayment === 'mpesa' && (
+              <div className="space-y-2">
+                <Label htmlFor="mpesaNumber">MPESA Number</Label>
+                <Input
+                  id="mpesaNumber"
+                  name="mpesaNumber"
+                  placeholder="07XXXXXXXX"
+                  value={paymentDetails.mpesaNumber}
+                  onChange={e => setPaymentDetails(prev => ({ ...prev, mpesaNumber: e.target.value }))}
+                />
+              </div>
+            )}
+            {selectedPayment === 'card' && (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Input
+                    id="cardNumber"
+                    name="cardNumber"
+                    placeholder="1234 5678 9012 3456"
+                    value={paymentDetails.cardNumber}
+                    onChange={e => setPaymentDetails(prev => ({ ...prev, cardNumber: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cardExpiry">Expiry</Label>
+                    <Input
+                      id="cardExpiry"
+                      name="cardExpiry"
+                      placeholder="MM/YY"
+                      value={paymentDetails.cardExpiry}
+                      onChange={e => setPaymentDetails(prev => ({ ...prev, cardExpiry: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cardCVC">CVC</Label>
+                    <Input
+                      id="cardCVC"
+                      name="cardCVC"
+                      placeholder="123"
+                      value={paymentDetails.cardCVC}
+                      onChange={e => setPaymentDetails(prev => ({ ...prev, cardCVC: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+      
+            <div className="mt-4">
+              <Button
+                className="w-full"
+                onClick={() => {
+                  if (selectedPayment === 'mpesa' && !paymentDetails.mpesaNumber) return;
+                  if (selectedPayment === 'card' && (!paymentDetails.cardNumber || !paymentDetails.cardExpiry || !paymentDetails.cardCVC)) return;
+                  setShowPaymentModal(false);
+                }}
+              >
+                Confirm Payment
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
 export default Checkout;
