@@ -15,7 +15,6 @@ import Categories from "./pages/Categories";
 import Offers from "./pages/Offers";
 import Recipes from "./pages/Recipes";
 
-
 const queryClient = new QueryClient();
 
 const App = () => (
