@@ -96,9 +96,9 @@ const Index: React.FC = () => {
                   Browse Drinks
                 </Button>
                 <Link to="/offers">
-                  <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="text-primary border-white hover:bg-white/10">
                     <Tag className="mr-2 h-5 w-5" />
-                    View Offers
+                    View Recipes
                   </Button>
                 </Link>
               </div>
@@ -195,7 +195,7 @@ const Index: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h3 className="text-2xl font-semibold mb-4">Fast Delivery In Your Area</h3>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            We deliver to most locations within 30-45 minutes. Our app can now automatically detect your location for faster delivery.
+            We deliver to most locations within 15-45 minutes. Our app can now automatically detect your location for faster delivery.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link to="/checkout">
