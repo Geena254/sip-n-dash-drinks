@@ -28,11 +28,11 @@ const featuredDrinks: DrinkItem[] = [
   },
   {
     id: 3,
-    name: "Coca-Cola",
+    name: "Craft Cola",
     price: 0.80,
     image: "https://images.unsplash.com/photo-1667204651371-5d4a65b8b5a9?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y29jYSUyMGNvbGF8ZW58MHx8MHx8fDA%3D",
     category: "Mixers & More",
-    description: "A classic soft drink with a timeless taste."
+    description: "Artisanal cola made with natural ingredients and cane sugar."
   },
   {
     id: 4,
