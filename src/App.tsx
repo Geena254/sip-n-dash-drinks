@@ -11,6 +11,8 @@ import Confirmation from "./pages/Confirmation";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Cart from "./components/Cart";
+import Categories from "./pages/Categories";
+import Offers from "./pages/Offers";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,8 @@ const App = () => (
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/confirmation" element={<Confirmation />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/offers" element={<Offers />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
