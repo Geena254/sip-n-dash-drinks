@@ -31,7 +31,7 @@ const CartContext = createContext<CartContextType>({
   updateQuantity: () => {},
   clearCart: () => {},
   cartTotal: 0,
-  cartCount: a0,
+  cartCount: 0,
 });
 
 export const useCart = () => useContext(CartContext);

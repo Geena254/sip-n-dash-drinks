@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Package, Cup } from 'lucide-react';
+import { ShoppingCart, Package, CupSoda } from 'lucide-react';
 import DrinkCard from '@/components/DrinkCard';
 import { DrinkItem } from '@/context/CartContext';
 
@@ -59,10 +58,10 @@ const featuredDrinks: DrinkItem[] = [
 ];
 
 const categories = [
-  { name: "Beer", count: 24, icon: Cup },
-  { name: "Wine", count: 18, icon: Cup },
+  { name: "Beer", count: 24, icon: CupSoda },
+  { name: "Wine", count: 18, icon: CupSoda },
   { name: "Spirits", count: 32, icon: Package },
-  { name: "Non-Alcoholic", count: 12, icon: Cup }
+  { name: "Non-Alcoholic", count: 12, icon: CupSoda }
 ];
 
 const Index: React.FC = () => {
