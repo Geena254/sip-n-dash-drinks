@@ -39,17 +39,17 @@ const Navbar: React.FC = () => {
               Home
             </Link>
             <Link 
-              to="/" 
-              className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/recipes')}`}
-            >
-              Cocktail Recipes
-            </Link>
-            <Link 
               to="/categories" 
               className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/categories')}`}
             >
               <Grid3X3 size={16} />
               Shop
+            </Link>
+            <Link 
+              to="/recipes" 
+              className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/recipes')}`}
+            >
+              Cocktail Recipes
             </Link>
             <Link 
               to="/offers" 

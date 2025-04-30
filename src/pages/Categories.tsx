@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,9 +12,9 @@ const categories = [
   { id: 1, name: "Beer", icon: CupSoda, count: 24, description: "Craft and commercial beers from around the world" },
   { id: 2, name: "Wine", icon: CupSoda, count: 18, description: "Red, white, and sparkling wines for every occasion" },
   { id: 3, name: "Spirits", icon: Package, count: 32, description: "Premium vodka, whiskey, gin, rum and more" },
-  { id: 4, name: "Cocktails", icon: CupSoda, count: 12, description: "Cocktails and premixed drinks" },
-  { id: 5, name: "6 Pack", icon: CupSoda, count: 12, description: "Packs for you and your group" },
-  { id: 6, name: "Mixers & More", icon: CupSoda, count: 12, description: "Refreshing options for non-drinkers" }
+  { id: 4, name: "Cocktails", icon: CupSoda, count: 15, description: "Cocktails and premixed drinks" },
+  { id: 5, name: "6 Pack", icon: CupSoda, count: 20, description: "Packs for you and your group" },
+  { id: 6, name: "Mixers & More", icon: CupSoda, count: 25, description: "Refreshing options for non-drinkers" }
 ];
 
 // Sample drinks for each category
@@ -23,42 +22,42 @@ const drinks: Record<string, DrinkItem[]> = {
   "Beer": [
     {
       id: 101,
-      name: "Craft IPA",
-      price: 12.99,
-      image: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      name: "White Cap Lager 500ml",
+      price: 2.50,
+      image: "https://greenspoon.co.ke/wp-content/uploads/2023/02/Greenspoon-Kenya-White-Cap-Can.jpg",
       category: "Beer",
-      description: "Hoppy IPA with citrus notes from a local craft brewery."
+      description: "A refreshing choice for those seeking a balanced and flavorful medium beer experience."
     },
     {
       id: 102,
-      name: "Wheat Beer",
-      price: 10.99,
-      image: "https://images.unsplash.com/photo-1566633806327-68e152aaf26d?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      name: "Tusker Lager 500ml",
+      price: 2.30,
+      image: "https://greenspoon.co.ke/wp-content/uploads/2023/02/Greenspoon-Kenya-Tusker-Lager-Can.jpg",
       category: "Beer",
-      description: "Light and refreshing wheat beer with hints of coriander and orange peel."
+      description: "Kenya's iconic lager with a distinctive, refreshing taste that has been enjoyed for generations."
     },
     {
       id: 103,
-      name: "Amber Ale",
-      price: 11.49,
-      image: "https://images.unsplash.com/photo-1571989569011-0df95aac7159?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      name: "Heineken Beer Bottle",
+      price: 3.00,
+      image: "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aGVpbmVrZW58ZW58MHx8MHx8fDA%3D",
       category: "Beer",
-      description: "Balanced amber ale with caramel maltiness and moderate bitterness."
+      description: "The first light low-calorie Beer that makes a great substitute for any alcoholic beverage at the bar."
     }
   ],
   "Wine": [
     {
       id: 201,
-      name: "Cabernet Sauvignon",
-      price: 24.99,
-      image: "https://images.unsplash.com/photo-1584916551093-a4ad3392786e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      name: "Frontera Cabernet Sauvignon",
+      price: 12.00,
+      image: "https://cdn.shopify.com/s/files/1/0871/2640/9530/files/jcell_cabernet_f_375ml_v20-1707408341712.png?v=1715264982",
       category: "Wine",
       description: "Full-bodied red wine with notes of black cherry and vanilla."
     },
     {
       id: 202,
       name: "Chardonnay",
-      price: 19.99,
+      price: 14.99,
       image: "https://images.unsplash.com/photo-1569919659476-f0852f6834b7?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
       category: "Wine",
       description: "Medium-bodied white wine with apple, pear and buttery notes."
@@ -67,38 +66,56 @@ const drinks: Record<string, DrinkItem[]> = {
   "Spirits": [
     {
       id: 301,
-      name: "Premium Vodka",
-      price: 29.99,
-      image: "https://images.unsplash.com/photo-1614963366795-973eb8748ebb?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      name: "Johnnie Walker Black Label",
+      price: 38.00,
+      image: "https://media.istockphoto.com/id/458070783/photo/johnnie-walker-black-label-whiskey.jpg?s=612x612&w=0&k=20&c=s01VpwN17K7yH5GUX0FAabraDzXwSKAXCQmimOceHmc=",
       category: "Spirits",
-      description: "Smooth premium vodka, perfect for cocktails or enjoying on the rocks."
+      description: "An iconic blend, recognized as the benchmark for all other deluxe blends."
     },
     {
       id: 302,
-      name: "Japanese Whisky",
-      price: 59.99,
-      image: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+      name: "Jameson Irish Whisky",
+      price: 25.99,
+      image: "https://media.istockphoto.com/id/534200132/photo/bottle-of-jameson-irish-whiskey.jpg?s=612x612&w=0&k=20&c=3o3FjDtodeL3FPsRbqfFXL79-L8eUfnV33pir4qfYGE=",
       category: "Spirits",
       description: "Smooth and complex whisky with hints of smoke and honey."
     }
   ],
-  "Non-Alcoholic": [
+  "6 Pack": [
     {
       id: 401,
-      name: "Craft Cola",
-      price: 8.99,
-      image: "https://images.unsplash.com/photo-1543253687-c931c8e01820?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-      category: "Non-Alcoholic",
-      description: "Artisanal cola made with natural ingredients and cane sugar."
+      name: "Tusker Lager 500ml 6 Pack",
+      price: 19.99,
+      image: "https://soys.co.ke/PImages/DEKQE-0.jpg",
+      category: "6 Pack",
+      description: "A selection of the finest craft beers, perfect for sharing."
     },
     {
       id: 402,
-      name: "Sparkling Water",
-      price: 5.99,
-      image: "https://images.unsplash.com/photo-1603394630850-69b3ca8121ca?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-      category: "Non-Alcoholic",
-      description: "Refreshing sparkling water with natural flavors."
+      name: "Heineken Beer 500ml 6 Pack",
+      price: 19.99,
+      image: "https://asiabrewery.com/cdn/shop/products/Heineken500mlCan_63c22d44-4255-46e7-88d0-76586f707502_800x.png?v=1653537601",
+      category: "6 Pack",
+      description: "A selection of the finest craft beers, perfect for sharing."
+    },
+    {
+      id: 403,
+      name: "Mixed Beer 6 Pack",
+      price: 20.00,
+      image: "https://www.kegcaskbottle.co.uk/cdn/shop/products/GermanCan6pack_1800x1800.jpg?v=1663868062",
+      category: "6 Pack",
+      description: "A mix of popular beers for every taste."
     }
+  ],
+  "Cocktails": [
+    {
+      id: 501,
+      name: "Classic Mojito",
+      price: 5.00,
+      image: "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+      category: "Cocktails",
+      description: "A refreshing and energizing drink made with mint, lime juice, sugar, and soda water."
+    },
   ]
 };
 

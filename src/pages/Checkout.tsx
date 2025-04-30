@@ -208,7 +208,7 @@ const Checkout: React.FC = () => {
 
               <div className="mt-6 bg-primary/5 p-4 rounded-md">
                 <p className="text-sm font-medium text-primary">Estimated Delivery Time</p>
-                <p className="text-sm text-muted-foreground">30-45 minutes from order time</p>
+                <p className="text-sm text-muted-foreground">20-45 minutes from order time</p>
               </div>
             </CardContent>
           </Card>

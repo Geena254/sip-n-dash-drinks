@@ -34,7 +34,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationSelect, initi
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const { toast } = useToast();
 
-  // Load Google Maps JS API
+  // // Load Google Maps JS API
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,

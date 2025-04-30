@@ -82,20 +82,20 @@ const Index: React.FC = () => {
           <div className="max-w-3xl">
             <div className="animate-fade-in">
               <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
-                Fast Delivery • 30-45 Minutes
+                Fast Delivery • 15-45 Minutes
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
                 Premium Drinks Delivered In Minutes
               </h1>
               <p className="text-lg md:text-xl mb-8 text-white/80">
-                From craft beers to fine wines, spirits, and non-alcoholic options,
+                From craft beers to fine wines, cocktails, spirits, and non-alcoholic options,
                 we've got your beverage needs covered with fast delivery.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
                   Browse Drinks
                 </Button>
-                <Link to="/offers">
+                <Link to="/recipes">
                   <Button size="lg" variant="outline" className="text-primary border-white hover:bg-white/10">
                     <Tag className="mr-2 h-5 w-5" />
                     View Recipes
