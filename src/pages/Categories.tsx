@@ -13,7 +13,9 @@ const categories = [
   { id: 1, name: "Beer", icon: CupSoda, count: 24, description: "Craft and commercial beers from around the world" },
   { id: 2, name: "Wine", icon: CupSoda, count: 18, description: "Red, white, and sparkling wines for every occasion" },
   { id: 3, name: "Spirits", icon: Package, count: 32, description: "Premium vodka, whiskey, gin, rum and more" },
-  { id: 4, name: "Non-Alcoholic", icon: CupSoda, count: 12, description: "Refreshing options for non-drinkers" }
+  { id: 4, name: "Cocktails", icon: CupSoda, count: 12, description: "Cocktails and premixed drinks" },
+  { id: 5, name: "6 Pack", icon: CupSoda, count: 12, description: "Packs for you and your group" },
+  { id: 6, name: "Mixers & More", icon: CupSoda, count: 12, description: "Refreshing options for non-drinkers" }
 ];
 
 // Sample drinks for each category
@@ -126,7 +128,7 @@ const Categories: React.FC = () => {
           Browse Categories
         </h1>
         <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-          Explore our wide selection of premium drinks, from craft beers to fine wines, spirits, and non-alcoholic options.
+          Explore our wide selection of premium drinks, from craft beers to fine wines, cocktails, spirits, and non-alcoholic options.
         </p>
       </div>
 
