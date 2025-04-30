@@ -116,6 +116,24 @@ const drinks: Record<string, DrinkItem[]> = {
       category: "Cocktails",
       description: "A refreshing and energizing drink made with mint, lime juice, sugar, and soda water."
     },
+  ],
+  "Mixers & More": [
+    {
+      id: 601,
+      name: "Coca-Cola",
+      price: 0.80,
+      image: "https://images.unsplash.com/photo-1667204651371-5d4a65b8b5a9?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y29jYSUyMGNvbGF8ZW58MHx8MHx8fDA%3D",
+      category: "Mixers & More",
+      description: "A classic soft drink with a timeless taste."
+    },
+    {
+      id: 602,
+      name: "Schweppes",
+      price: 0.80,
+      image: "https://www.coca-cola.com/content/dam/onexp/ng/home-image/brands/schweppes/products/product-images-final/ng_schweppes_prod_virgin%20mojito_750x750.jpg",
+      category: "Mixers & More",
+      description:"A refreshing and energizing drink."
+    },
   ]
 };
 

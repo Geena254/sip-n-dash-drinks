@@ -12,52 +12,52 @@ import { Badge } from '@/components/ui/badge';
 const featuredDrinks: DrinkItem[] = [
   {
     id: 1,
-    name: "Premium Vodka",
-    price: 29.99,
-    image: "https://images.unsplash.com/photo-1614963366795-973eb8748ebb?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Spirits",
-    description: "Smooth premium vodka, perfect for cocktails or enjoying on the rocks."
+    name: "White Cap Lager 500ml",
+    price: 2.50,
+    image: "https://greenspoon.co.ke/wp-content/uploads/2023/02/Greenspoon-Kenya-White-Cap-Can.jpg",
+    category: "Beer",
+    description: "A refreshing choice for those seeking a balanced and flavorful medium beer experience."
   },
   {
     id: 2,
-    name: "Craft IPA Beer",
-    price: 12.99,
-    image: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Beer",
-    description: "Hoppy and flavorful IPA from a local craft brewery."
+    name: "Frontera Cabernet Sauvignon",
+    price: 12.00,
+    image: "https://cdn.shopify.com/s/files/1/0871/2640/9530/files/jcell_cabernet_f_375ml_v20-1707408341712.png?v=1715264982",
+    category: "Wine",
+    description: "Full-bodied red wine with notes of black cherry and vanilla."
   },
   {
     id: 3,
-    name: "Red Wine Blend",
-    price: 24.99,
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Wine",
-    description: "Medium-bodied red wine with notes of dark fruit and oak."
+    name: "Coca-Cola",
+    price: 0.80,
+    image: "https://images.unsplash.com/photo-1667204651371-5d4a65b8b5a9?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y29jYSUyMGNvbGF8ZW58MHx8MHx8fDA%3D",
+    category: "Mixers & More",
+    description: "A classic soft drink with a timeless taste."
   },
   {
     id: 4,
     name: "Sparkling Water",
     price: 5.99,
-    image: "https://images.unsplash.com/photo-1603394630850-69b3ca8121ca?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    image: "https://plus.unsplash.com/premium_photo-1687354232206-778ddd5d929f?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     category: "Non-Alcoholic",
     description: "Refreshing sparkling water with natural flavors."
   },
   {
-    id: 5,
-    name: "Japanese Whisky",
-    price: 59.99,
-    image: "https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Spirits",
-    description: "Smooth and complex whisky with hints of smoke and honey."
+    id: 501,
+    name: "Classic Mojito",
+    price: 5.00,
+    image: "https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+    category: "Cocktails",
+    description: "A refreshing and energizing drink made with mint, lime juice, sugar, and soda water."
   },
   {
     id: 6,
-    name: "Craft Cola",
-    price: 8.99,
-    image: "https://images.unsplash.com/photo-1543253687-c931c8e01820?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    category: "Non-Alcoholic",
-    description: "Artisanal cola made with natural ingredients and cane sugar."
-  }
+    name: "Johnnie Walker Black Label",
+    price: 38.00,
+    image: "https://media.istockphoto.com/id/458070783/photo/johnnie-walker-black-label-whiskey.jpg?s=612x612&w=0&k=20&c=s01VpwN17K7yH5GUX0FAabraDzXwSKAXCQmimOceHmc=",
+    category: "Spirits",
+    description: "An iconic blend, recognized as the benchmark for all other deluxe blends."
+  },
 ];
 
 const categories = [
