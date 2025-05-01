@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -79,8 +78,9 @@ const Index: React.FC = () => {
       {/* Hero section with improved design */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-          <div className="max-w-3xl">
-            <div className="animate-fade-in">
+          <div className="flex flex-col-reverse lg:flex-row items-center gap-12">
+            {/* Left: Text Content */}
+            <div className="max-w-3xl w-full animate-fade-in">
               <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
                 Fast Delivery • 15-45 Minutes
               </Badge>
@@ -92,9 +92,11 @@ const Index: React.FC = () => {
                 we've got your beverage needs covered with fast delivery.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
-                  Browse Drinks
-                </Button>
+                <Link to="/categories">
+                  <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
+                    Browse Drinks
+                  </Button>
+                </Link>
                 <Link to="/recipes">
                   <Button size="lg" variant="outline" className="text-primary border-white hover:bg-white/10">
                     <Tag className="mr-2 h-5 w-5" />
@@ -102,6 +104,15 @@ const Index: React.FC = () => {
                   </Button>
                 </Link>
               </div>
+            </div>
+
+            {/* Right: Image */}
+            <div className="w-full lg:w-1/2">
+              <img
+                src="https://cdn.pixabay.com/photo/2022/01/26/22/43/delivery-6970072_1280.png"
+                alt="Delivery Hero"
+                className="w-full h-auto rounded-2xl shadow-lg"
+              />
             </div>
           </div>
         </div>
