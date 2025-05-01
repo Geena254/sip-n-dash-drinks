@@ -6,6 +6,7 @@ import DrinkCard from '@/components/DrinkCard';
 import { DrinkItem } from '@/context/CartContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 // Sample data for drinks
 const featuredDrinks: DrinkItem[] = [
@@ -29,7 +30,7 @@ const featuredDrinks: DrinkItem[] = [
     id: 3,
     name: "Craft Cola",
     price: 0.80,
-    image: "https://images.unsplash.com/photo-1667204651371-5d4a65b8b5a9?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y29jYSUyMGNvbGF8ZW58MHx8MHx8fDA%3D",
+    image: "https://images.unsplash.com/photo-1667204651371-5d4a65b8b5a9?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     category: "Mixers & More",
     description: "Artisanal cola made with natural ingredients and cane sugar."
   },
@@ -98,7 +99,7 @@ const Index: React.FC = () => {
                   </Button>
                 </Link>
                 <Link to="/recipes">
-                  <Button size="lg" variant="outline" className="text-primary border-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
                     <Tag className="mr-2 h-5 w-5" />
                     View Recipes
                   </Button>
@@ -107,12 +108,16 @@ const Index: React.FC = () => {
             </div>
 
             {/* Right: Image */}
-            <div className="w-full lg:w-1/2">
-              <img
-                src="https://cdn.pixabay.com/photo/2022/01/26/22/43/delivery-6970072_1280.png"
-                alt="Delivery Hero"
-                className="w-full h-auto rounded-2xl shadow-lg"
-              />
+            <div className="w-full lg:w-1/2 animate-fade-in">
+              <div className="rounded-2xl overflow-hidden shadow-xl">
+                <AspectRatio ratio={4/3} className="bg-white/5 backdrop-blur-sm">
+                  <img
+                    src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+                    alt="Premium drinks assortment"
+                    className="object-cover w-full h-full rounded-2xl hover-scale transition-all duration-500 ease-in-out"
+                  />
+                </AspectRatio>
+              </div>
             </div>
           </div>
         </div>
