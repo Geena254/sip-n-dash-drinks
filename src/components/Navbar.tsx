@@ -33,12 +33,6 @@ const Navbar: React.FC = () => {
           
           <div className="hidden md:flex items-center space-x-1">
             <Link 
-              to="/" 
-              className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors ${isActive('/')}`}
-            >
-              Home
-            </Link>
-            <Link 
               to="/categories" 
               className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/categories')}`}
             >
