@@ -99,7 +99,7 @@ const Index: React.FC = () => {
                   </Button>
                 </Link>
                 <Link to="/recipes">
-                  <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="bg-white text-primary hover:bg-gray-100 font-medium">
                     <Tag className="mr-2 h-5 w-5" />
                     View Recipes
                   </Button>
