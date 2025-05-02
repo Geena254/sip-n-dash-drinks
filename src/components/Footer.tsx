@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FaFacebook, FaTwitter, FaInstagram, FaWhatsapp, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 
@@ -11,21 +12,21 @@ const Footer: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {/* Brand section */}
             <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="text-xl font-bold barrush-gradient-text">
                     Booze To You
                 </span>
                 <p className="text-gray-300 mb-4">Your one-stop solution for all your drink needs.</p>
                 <div className="flex space-x-4 mt-4">
-                <a href="#" className="text-gray-300 hover:text-pink-500 transition-colors">
+                <a href="#" className="text-gray-300 hover:text-barlogo-pink transition-colors">
                     <FaFacebook size={20} />
                 </a>
-                <a href="#" className="text-gray-300 hover:text-pink-500 transition-colors">
+                <a href="#" className="text-gray-300 hover:text-barlogo-pink transition-colors">
                     <FaTwitter size={20} />
                 </a>
-                <a href="#" className="text-gray-300 hover:text-pink-500 transition-colors">
+                <a href="#" className="text-gray-300 hover:text-barlogo-pink transition-colors">
                     <FaInstagram size={20} />
                 </a>
-                <a href="#" className="text-gray-300 hover:text-pink-500 transition-colors">
+                <a href="#" className="text-gray-300 hover:text-barlogo-pink transition-colors">
                     <FaWhatsapp size={20} />
                 </a>
                 </div>
@@ -33,7 +34,7 @@ const Footer: React.FC = () => {
             
             {/* Quick Links */}
             <div>
-                <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Quick Links</h3>
+                <h3 className="text-xl font-bold barrush-gradient-text">Quick Links</h3>
                 <ul className="space-y-2">
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Shop</a></li>
                 <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Cocktail Recipes</a></li>
@@ -43,7 +44,7 @@ const Footer: React.FC = () => {
             
             {/* Contact Info */}
             <div>
-                <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Contact Us</h3>
+                <h3 className="text-xl font-bold barrush-gradient-text">Contact Us</h3>
                 <ul className="space-y-3">
                 <li className="flex items-center">
                     <FaEnvelope className="mr-2 text-gray-400" />
@@ -62,7 +63,7 @@ const Footer: React.FC = () => {
             
             {/* Hours */}
             <div>
-                <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Opening Hours</h3>
+                <h3 className="text-xl font-bold barrush-gradient-text">Opening Hours</h3>
                 <ul className="space-y-2">
                 <li className="flex items-center">
                     <FaClock className="mr-2 text-gray-400" />
@@ -83,9 +84,9 @@ const Footer: React.FC = () => {
                 © {currentYear} BarRush. All rights reserved.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">Privacy Policy</a>
-                <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">Terms of Service</a>
-                <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">Cookie Policy</a>
+                <a href="#" className="text-gray-400 hover:text-barlogo-pink transition-colors">Privacy Policy</a>
+                <a href="#" className="text-gray-400 hover:text-barlogo-pink transition-colors">Terms of Service</a>
+                <a href="#" className="text-gray-400 hover:text-barlogo-pink transition-colors">Cookie Policy</a>
             </div>
             </div>
         </div>

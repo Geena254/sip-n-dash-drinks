@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
@@ -52,10 +53,10 @@ const Navbar: React.FC = () => {
           <div className="flex-shrink-0 flex items-center">
             <div className="relative" onMouseEnter={handleLogoMouseEnter} onMouseLeave={handleLogoMouseLeave}>
               <Link to="/" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
+                <div className="h-8 w-8 rounded-full barrush-gradient-bg flex items-center justify-center text-white font-bold text-lg">
                   B
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="text-xl font-bold barrush-gradient-text">
                   BarRush
                 </span>
               </Link>
