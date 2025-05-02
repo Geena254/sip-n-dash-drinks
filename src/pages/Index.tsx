@@ -87,7 +87,7 @@ const Index: React.FC = () => {
               playsInline
               className="absolute top-0 right-0 h-full w-full object-cover object-center-right"
             >
-              <source src="https://cdn.pixabay.com/video/2021/09/11/88242-602915695_large.mp4" type="video/mp4" />
+              <source src="/88242-602915695-small-unscreen.gif" type="video/gif" />
               Your browser does not support the video tag.
             </video>
           </div>
