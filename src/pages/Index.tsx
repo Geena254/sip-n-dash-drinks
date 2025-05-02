@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,7 @@ const Index: React.FC = () => {
               playsInline
               className="absolute top-0 right-0 h-full w-full object-cover object-center-right"
             >
-              <source src="https://assets.mixkit.co/videos/preview/mixkit-delivery-man-waving-and-holding-a-package-42591-large.mp4" type="video/mp4" />
+              <source src="https://cdn.pixabay.com/video/2021/09/11/88242-602915695_large.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
