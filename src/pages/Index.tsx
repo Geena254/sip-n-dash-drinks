@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import DrinkCard from '@/components/DrinkCard';
 import { DrinkItem } from '@/context/CartContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 // Sample data for drinks
 const featuredDrinks: DrinkItem[] = [
@@ -76,12 +76,29 @@ const specialOffers = [
 const Index: React.FC = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero section with improved design */}
-      <div className="bg-gradient-to-br from-primary to-secondary text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-          <div className="flex flex-col-reverse lg:flex-row items-center gap-12">
-            {/* Left: Text Content */}
-            <div className="max-w-3xl w-full animate-fade-in">
+      {/* Hero section with delivery animation */}
+      <div className="bg-gradient-to-br from-primary to-secondary text-white relative overflow-hidden">
+        {/* Animated Delivery Person - positioned for all screen sizes */}
+        <div className="absolute right-0 top-0 h-full w-full lg:w-1/2 z-0 pointer-events-none">
+          <div className="relative h-full w-full opacity-20 md:opacity-80">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute top-0 right-0 h-full w-full object-cover object-center-right"
+            >
+              <source src="https://assets.mixkit.co/videos/preview/mixkit-delivery-man-waving-and-holding-a-package-42591-large.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+        
+        {/* Content overlay */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center">
+            {/* Text Content - Takes full width on mobile, half on desktop */}
+            <div className="w-full lg:w-1/2 animate-fade-in backdrop-blur-sm bg-gradient-to-r from-primary/90 to-primary/30 p-6 rounded-xl">
               <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
                 Fast Delivery • 15-45 Minutes
               </Badge>
@@ -104,19 +121,6 @@ const Index: React.FC = () => {
                     View Recipes
                   </Button>
                 </Link>
-              </div>
-            </div>
-
-            {/* Right: Image */}
-            <div className="w-full lg:w-1/2 animate-fade-in">
-              <div className="rounded-2xl overflow-hidden shadow-xl">
-                <AspectRatio ratio={4/3} className="bg-white/5 backdrop-blur-sm">
-                  <img
-                    src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
-                    alt="Premium drinks assortment"
-                    className="object-cover w-full h-full rounded-2xl hover-scale transition-all duration-500 ease-in-out"
-                  />
-                </AspectRatio>
               </div>
             </div>
           </div>
