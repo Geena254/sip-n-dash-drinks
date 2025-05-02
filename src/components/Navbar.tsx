@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
                   to="/admin" 
                   className="absolute top-full mt-1 left-0 bg-white py-1 px-2 text-xs text-primary shadow-md rounded transition-opacity duration-300 opacity-100 hover:font-bold"
                 >
-                  Admin
+                  Admin Access
                 </Link>
               )}
             </div>
