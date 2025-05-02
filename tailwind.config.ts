@@ -67,6 +67,11 @@ export default {
                 barlogo: {
                     pink: '#FF33CC',
                     blue: '#3366FF'
+                },
+                purple: {
+                    light: '#D6BCFA',
+                    DEFAULT: '#9B87F5',
+                    dark: '#7E69AB'
                 }
             },
             borderRadius: {
