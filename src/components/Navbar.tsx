@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 const Navbar: React.FC = () => {
   const { cartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAdminLink, setShowAdminLink] = useState(false);
+  const [logoHoverTimer, setLogoHoverTimer] = useState<NodeJS.Timeout | null>(null);
   const location = useLocation();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -16,19 +18,56 @@ const Navbar: React.FC = () => {
     return location.pathname === path ? 'text-primary font-medium' : 'text-gray-700';
   };
 
+  const handleLogoMouseEnter = () => {
+    const timer = setTimeout(() => {
+      setShowAdminLink(true);
+    }, 3000); // Show admin link after hovering for 3 seconds
+    setLogoHoverTimer(timer);
+  };
+
+  const handleLogoMouseLeave = () => {
+    if (logoHoverTimer) {
+      clearTimeout(logoHoverTimer);
+      setLogoHoverTimer(null);
+    }
+    // Keep admin link visible for a short period after mouse leaves
+    setTimeout(() => {
+      setShowAdminLink(false);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    // Clean up timer on unmount
+    return () => {
+      if (logoHoverTimer) {
+        clearTimeout(logoHoverTimer);
+      }
+    };
+  }, [logoHoverTimer]);
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
-                B
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                BarRush
-              </span>
-            </Link>
+            <div className="relative" onMouseEnter={handleLogoMouseEnter} onMouseLeave={handleLogoMouseLeave}>
+              <Link to="/" className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
+                  B
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  BarRush
+                </span>
+              </Link>
+              {showAdminLink && (
+                <Link 
+                  to="/admin" 
+                  className="absolute top-full mt-1 left-0 bg-white py-1 px-2 text-xs text-primary shadow-md rounded transition-opacity duration-300 opacity-100 hover:font-bold"
+                >
+                  Admin
+                </Link>
+              )}
+            </div>
           </div>
           
           <div className="hidden md:flex items-center space-x-1">
@@ -102,11 +141,10 @@ const Navbar: React.FC = () => {
               Shop
             </Link>
             <Link 
-              to="/categories" 
+              to="/recipes" 
               className={`block px-3 py-2 rounded-md text-base font-medium hover:text-primary hover:bg-gray-50 flex items-center gap-2 ${isActive('/recipes')}`}
               onClick={() => setIsMenuOpen(false)}
             >
-              <Grid3X3 size={18} />
               Cocktail Recipes
             </Link>
             <Link 
