@@ -16,6 +16,7 @@ import Categories from "./pages/Categories";
 import Offers from "./pages/Offers";
 import Recipes from "./pages/Recipes";
 import Admin from "./pages/Admin";
+import AgeVerificationDialog from "./components/AgeVerificationDialog";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AgeVerificationDialog />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-grow">
