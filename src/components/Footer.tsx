@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             {/* Brand section */}
             <div>
-                <span className="text-xl font-bold text-purple-600">
+                <span className="text-xl font-bold barrush-gradient-text">
                     Booze To You
                 </span>
                 <p className="text-gray-600 mb-4">Your one-stop solution for all your drink needs.</p>
@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
             
             {/* Quick Links */}
             <div>
-                <h3 className="text-xl font-bold text-purple-600">Quick Links</h3>
+                <h3 className="text-xl font-bold barrush-gradient-text">Quick Links</h3>
                 <ul className="space-y-2">
                 <li><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Shop</a></li>
                 <li><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Cocktail Recipes</a></li>
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
             
             {/* Contact Info */}
             <div>
-                <h3 className="text-xl font-bold text-purple-600">Contact Us</h3>
+                <h3 className="text-xl font-bold barrush-gradient-text">Contact Us</h3>
                 <ul className="space-y-3">
                 <li className="flex items-center">
                     <FaEnvelope className="mr-2 text-purple-500" />
@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
             
             {/* Hours */}
             <div>
-                <h3 className="text-xl font-bold text-purple-600">Opening Hours</h3>
+                <h3 className="text-xl font-bold barrush-gradient-text">Opening Hours</h3>
                 <ul className="space-y-2">
                 <li className="flex items-center">
                     <FaClock className="mr-2 text-purple-500" />
