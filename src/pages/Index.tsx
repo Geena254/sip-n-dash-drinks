@@ -122,15 +122,6 @@ const Index: React.FC = () => {
                 </Link>
               </div>
             </div>
-
-            {/* Image - Takes full width on mobile, half on desktop */}
-            <div className="w-full lg:w-1/2 animate-fade-in">
-              <img
-                src="https://images.unsplash.com/photo-1603052875460-4f3a2b8c5d7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDF8fGJlZXJ8ZW58MHx8fHwxNjYyNTQ1NzA5&ixlib=rb-1.2.1&q=80&w=1080"
-                alt="Drinks"
-                className="rounded-lg shadow-lg w-full h-auto object-cover"
-              />
-            </div>
           </div>
         </div>
       </div>
