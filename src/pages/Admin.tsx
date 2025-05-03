@@ -414,7 +414,7 @@ const Admin = () => {
                         <TableCell>{item.stock}</TableCell>
                         <TableCell>{item.reorder}</TableCell>
                         <TableCell>
-                          <Badge variant={item.stock <= item.reorder / 2 ? "destructive" : "warning"}>
+                          <Badge variant={item.stock <= item.reorder / 2 ? "destructive" : "secondary"}>
                             {item.stock <= item.reorder / 2 ? 'Critical' : 'Low'}
                           </Badge>
                         </TableCell>
@@ -482,7 +482,7 @@ const Admin = () => {
                         <TableCell>{order.items}</TableCell>
                         <TableCell>{order.date}</TableCell>
                         <TableCell>
-                          <Badge variant={order.status === 'Delivered' ? "success" : "secondary"}>
+                          <Badge variant={order.status === 'Delivered' ? "default" : "secondary"}>
                             {order.status}
                           </Badge>
                         </TableCell>
@@ -543,8 +543,8 @@ const Admin = () => {
                         <TableCell>
                           <Badge 
                             variant={
-                              product.stock > product.reorder ? "success" : 
-                              product.stock <= product.reorder / 2 ? "destructive" : "warning"
+                              product.stock > product.reorder ? "default" : 
+                              product.stock <= product.reorder / 2 ? "destructive" : "secondary"
                             }
                           >
                             {product.stock > product.reorder ? 'In Stock' : 
