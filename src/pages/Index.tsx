@@ -77,22 +77,6 @@ const Index: React.FC = () => {
     <div className="min-h-screen">
       {/* Hero section with delivery animation */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white relative overflow-hidden">
-        {/* Animated Delivery Person - positioned for all screen sizes */}
-        <div className="absolute right-0 top-0 h-full w-full lg:w-1/2 z-0 pointer-events-none">
-          <div className="relative h-full w-full opacity-20 md:opacity-80">
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="absolute top-0 right-0 h-full w-full object-cover object-center-right"
-            >
-              <source src="/88242-602915695-small-unscreen.gif" type="video/gif" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        </div>
-        
         {/* Content overlay */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
           <div className="flex flex-col lg:flex-row items-center">
