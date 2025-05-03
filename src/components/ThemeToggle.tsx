@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Moon, Sun, CircleHalf } from 'lucide-react';
+import { Moon, Sun, CircleSlash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useTheme } from '@/context/ThemeContext';
@@ -27,7 +26,7 @@ export function ThemeToggle() {
           <span>Dark</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
-          <CircleHalf className="mr-2 h-4 w-4" />
+          <CircleSlash className="mr-2 h-4 w-4" />
           <span>System</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

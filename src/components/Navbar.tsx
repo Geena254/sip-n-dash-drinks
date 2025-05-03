@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
@@ -72,7 +71,8 @@ const Navbar: React.FC = () => {
             </div>
           </div>
           
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1">            
+            <ThemeToggle />
             <Link 
               to="/categories" 
               className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/categories')}`}
@@ -93,9 +93,7 @@ const Navbar: React.FC = () => {
               <Tag size={16} />
               Offers
             </Link>
-            
-            <ThemeToggle />
-            
+
             <Link to="/cart" className="ml-1">
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />
