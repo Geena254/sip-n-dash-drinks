@@ -75,36 +75,32 @@ const specialOffers = [
 const Index: React.FC = () => {
   return (
     <div className="min-h-screen">
-      {/* Hero section with delivery animation */}
-      <div className="bg-gradient-to-br from-primary to-secondary text-white relative overflow-hidden">
-        {/* Content overlay */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center">
-            {/* Text Content - Takes full width on mobile, half on desktop */}
-            <div className="w-full lg:w-1/2 animate-fade-in backdrop-blur-sm bg-gradient-to-r from-primary/90 to-primary/30 p-6 rounded-xl">
-              <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
-                Fast Delivery • 15-45 Minutes
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
-                Premium Drinks Delivered In Minutes
-              </h1>
-              <p className="text-lg md:text-xl mb-8 text-white/80">
-                From craft beers to fine wines, cocktails, spirits, and non-alcoholic options,
-                we've got your beverage needs covered with fast delivery.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/categories">
-                  <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
-                    Browse Drinks
-                  </Button>
-                </Link>
-                <Link to="/recipes">
-                  <Button size="lg" variant="outline" className="bg-white text-primary hover:bg-gray-100 font-medium">
-                    <Tag className="mr-2 h-5 w-5" />
-                    View Recipes
-                  </Button>
-                </Link>
-              </div>
+      {/* Hero section with simplified clean design */}
+      <div className="bg-gradient-to-br from-primary to-secondary text-white py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
+              Fast Delivery • 15-45 Minutes
+            </Badge>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
+              Premium Drinks Delivered In Minutes
+            </h1>
+            <p className="text-lg md:text-xl mb-8 text-white/90 max-w-2xl mx-auto">
+              From craft beers to fine wines, cocktails, spirits, and non-alcoholic options,
+              we've got your beverage needs covered with fast delivery.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/categories">
+                <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
+                  Browse Drinks
+                </Button>
+              </Link>
+              <Link to="/recipes">
+                <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10 font-medium">
+                  <Tag className="mr-2 h-5 w-5" />
+                  View Recipes
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
