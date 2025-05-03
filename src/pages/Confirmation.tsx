@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

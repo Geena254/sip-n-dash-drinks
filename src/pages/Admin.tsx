@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +6,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox, Search, Plus, AlertTriangle } from 'lucide-react';
 
 // Sample data - in a real app, this would come from a database
 const orderData = [
@@ -67,9 +69,10 @@ const Admin = () => {
     { id: 3, message: 'Customer feedback received', read: true, time: '2 hours ago' },
     { id: 4, message: 'Payment processed for order #1242', read: true, time: '3 hours ago' },
   ]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   
   // In a real application, this would use a proper authentication system
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     if (password === 'admin123') {
       setAuthenticated(true);
@@ -96,28 +99,27 @@ const Admin = () => {
   if (!authenticated) {
     return (
       <div className="flex min-h-[80vh] items-center justify-center">
-        <Card className="w-[350px]">
-          <CardHeader>
-            <CardTitle>Admin Login</CardTitle>
-            <CardDescription>Enter your password to access the admin dashboard</CardDescription>
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Admin Dashboard</CardTitle>
+            <CardDescription className="text-center">Enter your password to access the admin area</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
-            <CardContent>
-              <div className="grid w-full items-center gap-4">
-                <div className="flex flex-col space-y-1.5">
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="Enter password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  {error && <p className="text-sm text-red-500">{error}</p>}
-                </div>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="Enter password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full"
+                />
+                {error && <p className="text-sm text-red-500">{error}</p>}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button type="submit">Sign In</Button>
+            <CardFooter>
+              <Button type="submit" className="w-full">Sign In</Button>
             </CardFooter>
           </form>
         </Card>
@@ -147,43 +149,73 @@ const Admin = () => {
     );
   };
 
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto py-6 px-4">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <div className="relative">
-          <Button variant="outline" className="relative">
-            <Inbox className="h-5 w-5" />
-            <span className="ml-2">Notifications</span>
-            {notifications.filter(n => !n.read).length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {notifications.filter(n => !n.read).length}
-              </span>
-            )}
+        <div className="flex items-center gap-4">
+          <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="relative">
+                <Inbox className="h-5 w-5 mr-2" />
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
+              <div className="p-3 border-b flex justify-between items-center">
+                <h3 className="font-medium">Notifications</h3>
+                <Button variant="ghost" size="sm" onClick={markAllAsRead}>Mark all read</Button>
+              </div>
+              <div className="max-h-72 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map(notification => (
+                    <div 
+                      key={notification.id} 
+                      className={`p-3 border-b text-sm ${!notification.read ? 'bg-muted' : ''} hover:bg-muted/50 cursor-pointer`}
+                      onClick={() => {
+                        setNotifications(notifications.map(n => 
+                          n.id === notification.id ? { ...n, read: true } : n
+                        ));
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        {!notification.read && (
+                          <div className="h-2 w-2 mt-1 rounded-full bg-blue-500" />
+                        )}
+                        <div>
+                          <p className="font-medium">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Button variant="outline">
+            Settings
           </Button>
-          <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 hidden group-hover:block">
-            <div className="p-3 border-b flex justify-between items-center">
-              <h3 className="font-medium">Notifications</h3>
-              <Button variant="ghost" size="sm" onClick={markAllAsRead}>Mark all read</Button>
-            </div>
-            <div className="max-h-60 overflow-y-auto">
-              {notifications.map(notification => (
-                <div key={notification.id} className={`p-3 border-b text-sm ${!notification.read ? 'bg-muted' : ''}`}>
-                  <p className="font-medium">{notification.message}</p>
-                  <p className="text-xs text-muted-foreground">{notification.time}</p>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
       
       {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="shadow-sm hover:shadow transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
@@ -203,10 +235,10 @@ const Admin = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="shadow-sm hover:shadow transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ChartBar className="h-4 w-4 text-muted-foreground" />
+            <ChartBar className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOrders}</div>
@@ -216,10 +248,10 @@ const Admin = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="shadow-sm hover:shadow transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Visitors</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalVisitors}</div>
@@ -239,25 +271,42 @@ const Admin = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="shadow-sm hover:shadow transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               ${totalInventoryValue.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {lowStockAlerts.length} items low on stock
-            </p>
+            {lowStockAlerts.length > 0 ? (
+              <p className="text-xs text-amber-600 flex items-center mt-1">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                {lowStockAlerts.length} items low on stock
+              </p>
+            ) : (
+              <p className="text-xs text-green-600 flex items-center mt-1">
+                All items adequately stocked
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
       
+      {/* Alerts section for critical issues */}
+      {lowStockAlerts.some(item => item.stock <= item.reorder / 2) && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            You have {lowStockAlerts.filter(item => item.stock <= item.reorder / 2).length} items with critically low stock that require immediate attention!
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {/* Charts and tables */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="w-full md:w-auto">
+        <TabsList className="w-full md:w-auto mb-2 flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
@@ -309,7 +358,7 @@ const Admin = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `${value}%`} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -337,9 +386,14 @@ const Admin = () => {
           </Card>
           
           <Card>
-            <CardHeader>
-              <CardTitle>Low Stock Alerts</CardTitle>
-              <CardDescription>Items that need reordering soon</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Low Stock Alerts</CardTitle>
+                <CardDescription>Items that need reordering soon</CardDescription>
+              </div>
+              {lowStockAlerts.length > 0 && (
+                <Button size="sm">Order inventory</Button>
+              )}
             </CardHeader>
             <CardContent>
               {lowStockAlerts.length > 0 ? (
@@ -350,6 +404,7 @@ const Admin = () => {
                       <TableHead>Current Stock</TableHead>
                       <TableHead>Reorder Point</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -359,18 +414,22 @@ const Admin = () => {
                         <TableCell>{item.stock}</TableCell>
                         <TableCell>{item.reorder}</TableCell>
                         <TableCell>
-                          <span className={`inline-block px-2 py-1 text-xs rounded ${
-                            item.stock <= item.reorder / 2 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
+                          <Badge variant={item.stock <= item.reorder / 2 ? "destructive" : "warning"}>
                             {item.stock <= item.reorder / 2 ? 'Critical' : 'Low'}
-                          </span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline">Order now</Button>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-center py-4">No low stock alerts at this time.</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                  <p>No low stock alerts at this time.</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -378,14 +437,14 @@ const Admin = () => {
         
         <TabsContent value="orders">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Recent Orders</CardTitle>
                 <CardDescription>Latest orders placed on your store</CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 <Select defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -401,131 +460,154 @@ const Admin = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableCaption>List of recent orders</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orderData.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">#{order.id}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell>{order.items}</TableCell>
-                      <TableCell>{order.date}</TableCell>
-                      <TableCell>
-                        <span className={`inline-block px-2 py-1 text-xs rounded ${
-                          order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableCaption>List of recent orders</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {orderData.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell>{order.customer}</TableCell>
+                        <TableCell>{order.items}</TableCell>
+                        <TableCell>{order.date}</TableCell>
+                        <TableCell>
+                          <Badge variant={order.status === 'Delivered' ? "success" : "secondary"}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline">View details</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="inventory">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Inventory Management</CardTitle>
                 <CardDescription>Monitor and manage product inventory</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Input placeholder="Search products..." className="w-[250px]" />
-                <Button>Add Product</Button>
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <div className="relative w-full sm:w-auto flex-grow sm:flex-grow-0">
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                  <Input placeholder="Search products..." className="pl-9 w-full" />
+                </div>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Product
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableCaption>Complete inventory list</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {inventoryData.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">#{product.id}</TableCell>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>
-                        <span className={`inline-block px-2 py-1 text-xs rounded ${
-                          product.stock > product.reorder ? 'bg-green-100 text-green-800' : 
-                          product.stock <= product.reorder / 2 ? 'bg-red-100 text-red-800' : 
-                          'bg-amber-100 text-amber-800'
-                        }`}>
-                          {product.stock > product.reorder ? 'In Stock' : 
-                           product.stock <= product.reorder / 2 ? 'Critical' : 'Low Stock'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="outline" size="sm">Edit</Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableCaption>Complete inventory list</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {inventoryData.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">#{product.id}</TableCell>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.category}</TableCell>
+                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={
+                              product.stock > product.reorder ? "success" : 
+                              product.stock <= product.reorder / 2 ? "destructive" : "warning"
+                            }
+                          >
+                            {product.stock > product.reorder ? 'In Stock' : 
+                             product.stock <= product.reorder / 2 ? 'Critical' : 'Low Stock'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button variant="outline" size="sm">Order</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="customers">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Customer Management</CardTitle>
                 <CardDescription>View and manage customer information</CardDescription>
               </div>
-              <Input placeholder="Search customers..." className="w-[250px]" />
+              <div className="relative w-full sm:w-[250px]">
+                <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Search customers..." className="pl-9 w-full" />
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableCaption>Complete customer list</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Orders</TableHead>
-                    <TableHead>Last Order</TableHead>
-                    <TableHead className="text-right">Total Spent</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {userData.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">#{user.id}</TableCell>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.orders}</TableCell>
-                      <TableCell>{user.lastOrder}</TableCell>
-                      <TableCell className="text-right">${user.totalSpent.toFixed(2)}</TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableCaption>Complete customer list</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Orders</TableHead>
+                      <TableHead>Last Order</TableHead>
+                      <TableHead>Total Spent</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {userData.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">#{user.id}</TableCell>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.orders}</TableCell>
+                        <TableCell>{user.lastOrder}</TableCell>
+                        <TableCell>${user.totalSpent.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline">View profile</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
