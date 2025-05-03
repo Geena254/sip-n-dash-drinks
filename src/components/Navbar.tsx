@@ -4,7 +4,6 @@ import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ThemeToggle } from './ThemeToggle';
 
 const Navbar: React.FC = () => {
   const { cartCount } = useCart();
@@ -72,7 +71,6 @@ const Navbar: React.FC = () => {
           </div>
           
           <div className="hidden md:flex items-center space-x-1">            
-            <ThemeToggle />
             <Link 
               to="/categories" 
               className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${isActive('/categories')}`}
@@ -107,8 +105,6 @@ const Navbar: React.FC = () => {
           </div>
           
           <div className="md:hidden flex items-center">
-            <ThemeToggle />
-            
             <Link to="/cart" className="mr-2">
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />
