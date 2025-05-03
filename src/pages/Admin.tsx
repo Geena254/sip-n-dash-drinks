@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox, Search, Plus, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox, Search, Plus, AlertTriangle, Settings, Eye, Edit, Archive } from 'lucide-react';
 
 // Sample data - in a real app, this would come from a database
 const orderData = [
@@ -59,6 +62,8 @@ const salesByCategoryData = [
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const Admin = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -70,6 +75,14 @@ const Admin = () => {
     { id: 4, message: 'Payment processed for order #1242', read: true, time: '3 hours ago' },
   ]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [viewOrderDialog, setViewOrderDialog] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [viewProductDialog, setViewProductDialog] = useState(false);
+  const [editProductDialog, setEditProductDialog] = useState(false);
+  const [orderProductDialog, setOrderProductDialog] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
+  const [viewCustomerDialog, setViewCustomerDialog] = useState(false);
+  const [currentCustomer, setCurrentCustomer] = useState(null);
   
   // In a real application, this would use a proper authentication system
   const handleLogin = (e) => {
@@ -80,6 +93,59 @@ const Admin = () => {
     } else {
       setError('Invalid password');
     }
+  };
+
+  // Navigate to settings page
+  const navigateToSettings = () => {
+    navigate('/settings');
+  };
+
+  // View order details
+  const handleViewOrder = (order) => {
+    setCurrentOrder(order);
+    setViewOrderDialog(true);
+  };
+
+  // View product details
+  const handleViewProduct = (product) => {
+    setCurrentProduct(product);
+    setViewProductDialog(true);
+  };
+
+  // Edit product
+  const handleEditProduct = (product) => {
+    setCurrentProduct(product);
+    setEditProductDialog(true);
+  };
+
+  // Order product
+  const handleOrderProduct = (product) => {
+    setCurrentProduct(product);
+    setOrderProductDialog(true);
+  };
+
+  // View customer details
+  const handleViewCustomer = (customer) => {
+    setCurrentCustomer(customer);
+    setViewCustomerDialog(true);
+  };
+
+  // Place sample order for inventory
+  const handlePlaceOrder = () => {
+    setOrderProductDialog(false);
+    toast({
+      title: "Order Placed",
+      description: `Ordered ${currentProduct?.name} successfully.`,
+    });
+  };
+
+  // Save edited product
+  const handleSaveProduct = () => {
+    setEditProductDialog(false);
+    toast({
+      title: "Product Updated",
+      description: `${currentProduct?.name} has been updated successfully.`,
+    });
   };
 
   // Calculate low stock items
@@ -204,7 +270,8 @@ const Admin = () => {
               </div>
             </PopoverContent>
           </Popover>
-          <Button variant="outline">
+          <Button variant="outline" onClick={navigateToSettings}>
+            <Settings className="h-5 w-5 mr-2" />
             Settings
           </Button>
         </div>
@@ -419,7 +486,9 @@ const Admin = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button size="sm" variant="outline">Order now</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleOrderProduct(inventoryData.find(p => p.id === item.id))}>
+                            Order now
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -488,7 +557,10 @@ const Admin = () => {
                         </TableCell>
                         <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
                         <TableCell>
-                          <Button size="sm" variant="outline">View details</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleViewOrder(order)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View details
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -551,9 +623,19 @@ const Admin = () => {
                              product.stock <= product.reorder / 2 ? 'Critical' : 'Low Stock'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">Order</Button>
+                        <TableCell className="flex justify-end space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleViewProduct(product)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleEditProduct(product)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleOrderProduct(product)}>
+                            <Archive className="h-4 w-4 mr-2" />
+                            Order
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -601,7 +683,10 @@ const Admin = () => {
                         <TableCell>{user.lastOrder}</TableCell>
                         <TableCell>${user.totalSpent.toFixed(2)}</TableCell>
                         <TableCell>
-                          <Button size="sm" variant="outline">View profile</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleViewCustomer(user)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View profile
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -612,6 +697,278 @@ const Admin = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* View Order Dialog */}
+      <Dialog open={viewOrderDialog} onOpenChange={setViewOrderDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Order #{currentOrder?.id}</DialogTitle>
+            <DialogDescription>
+              Order details and items
+            </DialogDescription>
+          </DialogHeader>
+          {currentOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Customer</p>
+                  <p className="font-medium">{currentOrder.customer}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Date</p>
+                  <p className="font-medium">{currentOrder.date}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <Badge variant={currentOrder.status === 'Delivered' ? "default" : "secondary"}>
+                    {currentOrder.status}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="font-medium">${currentOrder.total.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-2">Order Items</h3>
+                <div className="bg-muted p-3 rounded-md">
+                  <p>Sample Items (would come from database in real app)</p>
+                  <ul className="list-disc pl-5 mt-2">
+                    <li>Premium Scotch x1</li>
+                    <li>Craft IPA x2</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewOrderDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Product Dialog */}
+      <Dialog open={viewProductDialog} onOpenChange={setViewProductDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{currentProduct?.name}</DialogTitle>
+            <DialogDescription>
+              Product details and information
+            </DialogDescription>
+          </DialogHeader>
+          {currentProduct && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">ID</p>
+                  <p className="font-medium">#{currentProduct.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Category</p>
+                  <p className="font-medium">{currentProduct.category}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Price</p>
+                  <p className="font-medium">${currentProduct.price.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Stock</p>
+                  <p className="font-medium">{currentProduct.stock}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Reorder Point</p>
+                  <p className="font-medium">{currentProduct.reorder}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <Badge 
+                    variant={
+                      currentProduct.stock > currentProduct.reorder ? "default" : 
+                      currentProduct.stock <= currentProduct.reorder / 2 ? "destructive" : "secondary"
+                    }
+                  >
+                    {currentProduct.stock > currentProduct.reorder ? 'In Stock' : 
+                     currentProduct.stock <= currentProduct.reorder / 2 ? 'Critical' : 'Low Stock'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewProductDialog(false)}>Close</Button>
+            <Button onClick={() => {
+              setViewProductDialog(false);
+              handleEditProduct(currentProduct);
+            }}>Edit Product</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Product Dialog */}
+      <Dialog open={editProductDialog} onOpenChange={setEditProductDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit {currentProduct?.name}</DialogTitle>
+            <DialogDescription>
+              Make changes to product information
+            </DialogDescription>
+          </DialogHeader>
+          {currentProduct && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="name">Product Name</label>
+                <Input id="name" value={currentProduct.name} onChange={() => {}} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="category">Category</label>
+                <Select defaultValue={currentProduct.category}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Spirits">Spirits</SelectItem>
+                    <SelectItem value="Beer">Beer</SelectItem>
+                    <SelectItem value="Wine">Wine</SelectItem>
+                    <SelectItem value="Non-Alcoholic">Non-Alcoholic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="price">Price ($)</label>
+                  <Input id="price" type="number" value={currentProduct.price} onChange={() => {}} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="stock">Stock Quantity</label>
+                  <Input id="stock" type="number" value={currentProduct.stock} onChange={() => {}} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="reorder">Reorder Point</label>
+                <Input id="reorder" type="number" value={currentProduct.reorder} onChange={() => {}} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditProductDialog(false)}>Cancel</Button>
+            <Button onClick={handleSaveProduct}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order Product Dialog */}
+      <Dialog open={orderProductDialog} onOpenChange={setOrderProductDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Order {currentProduct?.name}</DialogTitle>
+            <DialogDescription>
+              Place an order to restock this product
+            </DialogDescription>
+          </DialogHeader>
+          {currentProduct && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Stock</p>
+                  <p className="font-medium">{currentProduct.stock}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Reorder Point</p>
+                  <p className="font-medium">{currentProduct.reorder}</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="orderQuantity">Order Quantity</label>
+                <Input id="orderQuantity" type="number" defaultValue={currentProduct.reorder * 2} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="supplier">Supplier</label>
+                <Select defaultValue="supplier1">
+                  <SelectTrigger id="supplier">
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="supplier1">Main Distributor Ltd.</SelectItem>
+                    <SelectItem value="supplier2">Wholesale Beverages Co.</SelectItem>
+                    <SelectItem value="supplier3">Direct from Manufacturer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="notes">Notes</label>
+                <Input id="notes" placeholder="Additional order instructions..." />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOrderProductDialog(false)}>Cancel</Button>
+            <Button onClick={handlePlaceOrder}>Place Order</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Customer Dialog */}
+      <Dialog open={viewCustomerDialog} onOpenChange={setViewCustomerDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Customer Profile: {currentCustomer?.name}</DialogTitle>
+            <DialogDescription>
+              Customer details and purchase history
+            </DialogDescription>
+          </DialogHeader>
+          {currentCustomer && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Customer ID</p>
+                  <p className="font-medium">#{currentCustomer.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{currentCustomer.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Orders</p>
+                  <p className="font-medium">{currentCustomer.orders}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Last Order</p>
+                  <p className="font-medium">{currentCustomer.lastOrder}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Spent</p>
+                  <p className="font-medium">${currentCustomer.totalSpent.toFixed(2)}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-medium">Recent Orders</h3>
+                <div className="bg-muted p-3 rounded-md">
+                  <p>Last 3 orders (would come from database in real app)</p>
+                  <ul className="mt-2 space-y-2">
+                    <li className="flex justify-between">
+                      <span>#1245 - 2025-05-01</span>
+                      <span>$59.99</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>#1232 - 2025-04-25</span>
+                      <span>$87.50</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>#1224 - 2025-04-18</span>
+                      <span>$32.99</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewCustomerDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

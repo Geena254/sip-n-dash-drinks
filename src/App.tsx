@@ -16,6 +16,7 @@ import Categories from "./pages/Categories";
 import Offers from "./pages/Offers";
 import Recipes from "./pages/Recipes";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
 import AgeVerificationDialog from "./components/AgeVerificationDialog";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/recipes" element={<Recipes />} />
                 <Route path="/offers" element={<Offers />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/settings" element={<Settings />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
