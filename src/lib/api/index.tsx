@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 // Define TypeScript interfaces for our data models
 export interface User {
@@ -111,14 +111,13 @@ const api: AxiosInstance = axios.create({
 
 // Add token to requests with TypeScript
 api.interceptors.request.use(
-  (config: { headers: { [x: string]: string; }; }) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['x-auth-token'] = token;
     }
     return config;
-  },
-  (error: any) => {
+  },  (error: any) => {
     return Promise.reject(error);
   }
 );

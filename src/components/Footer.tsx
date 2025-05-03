@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
             {/* Bottom section */}
             <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm mb-4 md:mb-0">
-                © {currentYear} Booze To You. All rights reserved.
+                © {currentYear} BarRush. All rights reserved.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm">
                 <a href="#" className="text-gray-500 hover:text-purple-700 transition-colors">Privacy Policy</a>
