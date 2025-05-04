@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,15 +13,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox, Search, Plus, AlertTriangle, Settings, Eye, Edit, Archive } from 'lucide-react';
-
-// Sample data - in a real app, this would come from a database
-const orderData = [
-  { id: 1, customer: 'John Doe', items: 3, total: 59.99, date: '2025-05-01', status: 'Delivered' },
-  { id: 2, customer: 'Jane Smith', items: 2, total: 42.50, date: '2025-05-01', status: 'Processing' },
-  { id: 3, customer: 'Alex Johnson', items: 5, total: 125.75, date: '2025-04-30', status: 'Delivered' },
-  { id: 4, customer: 'Sarah Williams', items: 1, total: 19.99, date: '2025-04-30', status: 'Processing' },
-  { id: 5, customer: 'Michael Brown', items: 4, total: 87.20, date: '2025-04-29', status: 'Delivered' },
-];
 
 const chartData = [
   { name: 'Apr 25', visitors: 120, orders: 4, revenue: 172 },
@@ -61,7 +52,7 @@ const salesByCategoryData = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const Admin = () => {
+const Admin: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [authenticated, setAuthenticated] = useState(false);
@@ -83,6 +74,35 @@ const Admin = () => {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [viewCustomerDialog, setViewCustomerDialog] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
+  // Order data
+  const [orderData, setOrderData] = useState([]);
+  const [newOrderAlert, setNewOrderAlert] = useState(false);
+  
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/orders/');
+      const data = await res.json();
+      setOrderData(data);
+  
+      // check for unseen orders
+      const hasNew = data.some(order => order.seen === false);
+      if (hasNew) {
+        setNotifications(prev => [
+          { id: Date.now(), message: '🆕 New order received!', read: false, time: 'Just now' },
+          ...prev,
+        ]);
+        setNewOrderAlert(true);
+      }
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+    }
+  };
+  
+  useEffect(() => {
+    fetchOrders(); // initial load
+    const interval = setInterval(fetchOrders, 5000); // poll every 5 sec
+    return () => clearInterval(interval);
+  }, []);  
   
   // In a real application, this would use a proper authentication system
   const handleLogin = (e) => {
@@ -101,9 +121,27 @@ const Admin = () => {
   };
 
   // View order details
-  const handleViewOrder = (order) => {
+  const handleViewOrder = async (order) => {
+    if (!order || !order.id) {
+      console.error('Invalid order object:', order);
+      return;
+    }
+    
     setCurrentOrder(order);
     setViewOrderDialog(true);
+  
+    // Mark order as seen in backend
+    try {
+      await fetch(`http://localhost:8000/api/order/${order.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ seen: true })
+      });
+    } catch (error) {
+      console.error('Failed to mark order as seen:', error);
+    }
   };
 
   // View product details
@@ -545,10 +583,10 @@ const Admin = () => {
                   </TableHeader>
                   <TableBody>
                     {orderData.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>{order.items}</TableCell>
+                    <TableRow key={order.order_id}>
+                      <TableCell className="font-medium">#{order.order_id}</TableCell>
+                      <TableCell>{order.customer.name}</TableCell>
+                      <TableCell>{order.items.length}</TableCell>
                         <TableCell>{order.date}</TableCell>
                         <TableCell>
                           <Badge variant={order.status === 'Delivered' ? "default" : "secondary"}>
@@ -733,17 +771,43 @@ const Admin = () => {
               <div>
                 <h3 className="font-medium mb-2">Order Items</h3>
                 <div className="bg-muted p-3 rounded-md">
-                  <p>Sample Items (would come from database in real app)</p>
                   <ul className="list-disc pl-5 mt-2">
-                    <li>Premium Scotch x1</li>
-                    <li>Craft IPA x2</li>
+                  {currentOrder?.items.map((item, index) => (
+                    <li key={index}>{item.product} x{item.quantity}</li>
+                  ))}
                   </ul>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="justify-between">
             <Button variant="outline" onClick={() => setViewOrderDialog(false)}>Close</Button>
+            {currentOrder?.status !== 'Delivered' && (
+              <Button
+                onClick={async () => {
+                  try {
+                    await fetch(`http://localhost:8000/api/order/${order_id}/update/`, {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ status: 'Delivered' })
+                    });
+                    toast({ title: "Order marked as delivered" });
+                    setViewOrderDialog(false);
+                    fetchOrders();
+                  } catch (error) {
+                    toast({
+                      title: "Update failed",
+                      description: "Could not update order status.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+              >
+                Mark as Delivered
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

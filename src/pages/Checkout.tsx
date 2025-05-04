@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -9,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import LocationPicker from '@/components/LocationPicker';
 import { ShoppingBag, CreditCard, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import axios from 'axios';
 
 const Checkout: React.FC = () => {
   const { items, cartTotal, clearCart } = useCart();
@@ -22,10 +22,8 @@ const Checkout: React.FC = () => {
     address: '',
     latitude: 0,
     longitude: 0,
-    city: '',
-    zipCode: '',
-    paymentMethod: '',
-    deliveryArea: 'Bofa'  
+    payment_method: '',
+    deliveryArea: ''
   });
   
   const deliveryAreas = [
@@ -59,10 +57,30 @@ const Checkout: React.FC = () => {
     }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
+  const deliveryFee = selectedArea ? selectedArea.price : 0;
+  const tax = cartTotal * 0.08;
+  const total = cartTotal + deliveryFee + tax;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate form fields
+    setIsSubmitting(true);
+
+    const phoneRegex = /^07\d{8}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!phoneRegex.test(formData.phone)) {
+      toast({ title: "Invalid phone number", description: "Use format: 07XXXXXXXX", variant: "destructive" });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!emailRegex.test(formData.email)) {
+      toast({ title: "Invalid email", description: "Please enter a valid email address", variant: "destructive" });
+      setIsSubmitting(false);
+      return;
+    }
+
     const requiredFields = ['name', 'email', 'phone', 'address'];
     const emptyFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
     
@@ -72,6 +90,7 @@ const Checkout: React.FC = () => {
         description: `Missing: ${emptyFields.join(', ')}`,
         variant: "destructive"
       });
+      setIsSubmitting(false);
       return;
     }
 
@@ -81,34 +100,46 @@ const Checkout: React.FC = () => {
         description: "Please choose how you'd like to pay.",
         variant: "destructive"
       });
+      setIsSubmitting(false);
       return;
     }
     
-    // Process order
-    setIsSubmitting(true);
-    
-    setTimeout(() => {
-      // Simulate API call
+    try {
+      const res = await axios.post('http://localhost:8000/api/order/', formData,{
+        // ...
+          // items: items.map(item => ({
+          //   item_id: item.id,
+          //   quantity: item.quantity
+          // }))
+        }, {
+        headers: {
+          // 'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = res.data;
       clearCart();
       navigate('/confirmation', { 
         state: { 
-          orderNumber: Math.floor(100000 + Math.random() * 900000).toString(),
+          orderNumber: data.order_id || Math.floor(100000 + Math.random() * 900000).toString(),
           deliveryTime: '30-45 minutes'
         } 
       });
-    }, 1500);
+    } catch (err: any) {
+      toast({
+        title: "Order failed",
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
-  // Calculate delivery fee and tax
-  const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
-  const deliveryFee = selectedArea ? selectedArea.price : 0;
-  const tax = cartTotal * 0.08;
-  const total = cartTotal + deliveryFee + tax;
   
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
       <h1 className="text-3xl font-bold mb-6 text-center md:text-left bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Complete Your Order</h1>
-      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <Card className="overflow-hidden">
