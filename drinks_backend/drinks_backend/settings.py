@@ -68,14 +68,22 @@ WSGI_APPLICATION = 'drinks_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'admin_dashboard',
+#         'USER': 'postgres',
+#         'PASSWORD': 'imani254',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'admin_dashboard',
-        'USER': 'postgres',
-        'PASSWORD': 'imani254',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
