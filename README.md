@@ -33,9 +33,15 @@ python3 manage.py
 
 This project is built with:
 
+**Frontend*
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+
+**Backend*
+- Django Rest Framework
+- Postgresql
+
 
