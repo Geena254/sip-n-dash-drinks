@@ -21,7 +21,7 @@
 - Cart
     - Cart Quantity
     - Cart Products
-    - Cart totoal
+    - Cart total
     - Session Handled
 - Authentication (JWT)(tokenization)
     - Authorization
