@@ -105,12 +105,12 @@ const Checkout: React.FC = () => {
     }
     
     try {
-      const res = await axios.post('http://localhost:8000/api/order/', formData,{
-        // ...
-          // items: items.map(item => ({
-          //   item_id: item.id,
-          //   quantity: item.quantity
-          // }))
+      const res = await axios.post('http://localhost:8000/api/order/', {
+        ...formData,
+          items: items.map(item => ({
+            item_id: item.id,
+            quantity: item.quantity
+          }))
         }, {
         headers: {
           // 'Authorization': `Bearer ${token}`,
