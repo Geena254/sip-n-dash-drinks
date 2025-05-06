@@ -56,18 +56,21 @@ class CustomerInfoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrderSerializer(serializers.ModelSerializer):
-    customer = CustomerInfoSerializer(read_only=True)
+    customer = CustomerInfoSerializer()
+    # order_id = serializers.CharField(read_only=True)  # View-only
 
     class Meta:
         model = Order
         fields = '__all__'
 
-# class OrderSerializer(serializers.ModelSerializer):
-#     customer = serializers.PrimaryKeyRelatedField(queryset=CustomerInfo.objects.all())
+    def create(self, validated_data):
+        customer_data = validated_data.pop('customer')
+        customer = CustomerInfo.objects.create(**customer_data)
 
-#     class Meta:
-#         model = Order
-#         fields = '__all__'
+        # order_id will be generated automatically in the model
+        order = Order.objects.create(customer=customer, **validated_data)
+        return order
+
 
 class OfferSerializer(serializers.ModelSerializer):
     class Meta:

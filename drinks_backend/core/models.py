@@ -2,6 +2,23 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 # Create your models here.
+import random
+import string
+import time
+
+def generate_random_string(length=6):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+def generate_order_id():
+    timestamp = int(time.time())
+    random_part = generate_random_string()
+    return f"ORD-{timestamp}-{random_part}"
+
+def get_unique_order_id():
+    while True:
+        order_id = generate_order_id()
+        if not Order.objects.filter(order_id=order_id).exists():
+            return order_id
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -70,10 +87,10 @@ class Order(models.Model):
     )
     PAYMENT_METHODS = (
         ('card', 'Card'),
-        ('m-pesa', 'M-Pesa'),
-        ('on-delivery', 'On-Delivery')
+        ('mpesa', 'MPesa'),
+        ('cash', 'Cash')
     )
-    order_id = models.CharField(max_length=200, unique=True)
+    order_id = models.CharField(max_length=200, unique=True, editable=False)
     customer = models.ForeignKey('CustomerInfo', on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
     products = models.JSONField(default=dict)
     status = models.CharField(max_length=50, choices=STATUS, default='unpaid')
@@ -81,6 +98,11 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=100, choices=PAYMENT_METHODS,default='m-pesa')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = get_unique_order_id()
+        super().save(*args, **kwargs)
 
     class Meta:
         '''Meta definition for Order.'''

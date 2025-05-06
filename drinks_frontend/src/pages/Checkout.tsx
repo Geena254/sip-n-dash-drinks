@@ -9,6 +9,7 @@ import LocationPicker from '@/components/LocationPicker';
 import { ShoppingBag, CreditCard, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
+import { createOrder } from '@/service/apiService';
 
 const Checkout: React.FC = () => {
   const { items, cartTotal, clearCart } = useCart();
@@ -123,26 +124,32 @@ const Checkout: React.FC = () => {
         }))
       };
 
-      const res = await axios.post('http://localhost:8000/api/order/', {
-        ...formData,
-        payment_method: selectedPayment,
-        orderSummary,
-        items: items.map(item => ({
-          item_id: item.id,
-          quantity: item.quantity
-        }))
-      }, {
-        headers: {
-          // 'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const orderData = {
+        customer: {
+          county: formData.address,
+          name: formData.name,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          email: formData.email,
+          phone: formData.phone,
+          delivery_area: formData.deliveryArea,
         },
-      });
+        products: items.reduce((acc, item) => {
+          acc[item.name] = {
+            quantity: item.quantity
+          };
+          return acc;
+        }, {}),
+        status: 'initiated',
+        order_total: orderSummary.total,
+        payment_method: selectedPayment
+       }
 
-      const data = res.data;
-      clearCart();
+      const res = await createOrder(orderData);
+      const data = res;
       navigate('/confirmation', {
         state: {
-          orderNumber: data.order_id || Math.floor(100000 + Math.random() * 900000).toString(),
+          orderNumber: data.order_id,
           deliveryTime: '30-45 minutes'
         }
       });
