@@ -1,61 +1,80 @@
 from rest_framework import serializers
-from .models import Customer, Product, Order, OrderItem
+from .models import *
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-class ProductSerializer(serializers.ModelSerializer):
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['role'] = user.role
+        token['username']= user.username
+        token['email'] = user.email
+
+        return token
+
+class DrinksCategorySerializer(serializers.ModelSerializer):
+    product_count = serializers.IntegerField(source='drink_product_count', read_only=True)
+
     class Meta:
-        model = Product
-        fields = ['id', 'name', 'price', 'category', 'image_url', 'description']
-
-
-class CustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
+        model = DrinksCategory
         fields = '__all__'
 
-
-class OrderItemReadSerializer(serializers.ModelSerializer):
-    product = ProductSerializer()
+class CocktailsCategorySerializer(serializers.ModelSerializer):
+    product_count = serializers.IntegerField(source='cocktail_product_count', read_only=True)
 
     class Meta:
-        model = OrderItem
-        fields = ['product', 'quantity']
+        model = CocktailsCategory
+        fields = '__all__'
 
+class DrinksSerializer(serializers.ModelSerializer):
+    # category = DrinksCategorySerializer(read_only=True)
+    category = serializers.SerializerMethodField()
 
-class OrderItemWriteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrderItem
-        fields = ['product', 'quantity']
+        model = Drinks
+        fields = '__all__'
 
+    def get_category(self, obj):
+        return obj.category.name if obj.category else None
+
+class CocktailsSerializer(serializers.ModelSerializer):
+    # category = CocktailsCategorySerializer(read_only=True)
+    category = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cocktails
+        fields = '__all__'
+
+    def get_category(self, obj):
+        return obj.category.name if obj.category else None
+
+class CustomerInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerInfo
+        fields = '__all__'
 
 class OrderSerializer(serializers.ModelSerializer):
-    # Use separate serializers for reading and writing
-    items = OrderItemWriteSerializer(many=True, write_only=True)
-    order_items = OrderItemReadSerializer(source='items', many=True, read_only=True)
-
-    customer = CustomerSerializer(write_only=True)
-    customer_details = CustomerSerializer(source='customer', read_only=True)
+    customer = CustomerInfoSerializer(read_only=True)
 
     class Meta:
         model = Order
-        fields = [
-            'id',
-            'customer', 'customer_details',
-            'total', 'delivery_fee', 'tax', 'status',
-            'payment_method', 'latitude', 'longitude',
-            'items', 'order_items',
-            'seen', 'date'
-        ]
+        fields = '__all__'
 
-    def create(self, validated_data):
-        customer_data = validated_data.pop('customer')
-        items_data = validated_data.pop('items')
-        customer = Customer.objects.create(**customer_data)
-        order = Order.objects.create(customer=customer, **validated_data)
+# class OrderSerializer(serializers.ModelSerializer):
+#     customer = serializers.PrimaryKeyRelatedField(queryset=CustomerInfo.objects.all())
 
-        for item in items_data:
-            OrderItem.objects.create(order=order, **item)
-            product = item['product']
-            product.stock -= item['quantity']
-            product.save()
+#     class Meta:
+#         model = Order
+#         fields = '__all__'
 
-        return order
+class OfferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Offer
+        fields = '__all__'
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = '__all__'

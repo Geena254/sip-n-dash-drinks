@@ -1,25 +1,26 @@
-from django.urls import path
-from .views import (
-    CreateOrderView,
-    GetAllOrdersView,
-    UpdateOrderStatusView,
-    GetProductsView,
-    GetOrderByIdView,
+from django.urls import path, include
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
 )
+from rest_framework.routers import DefaultRouter
+from .views import *
+from .serializers import CustomTokenObtainPairSerializer
+
+router = DefaultRouter()
+router.register(r'drinks-categories', DrinksCategoryViewSet)
+router.register(r'cocktails-categories', CocktailsCategoryViewSet)
+router.register(r'drinks', DrinksViewSet)
+router.register(r'cocktails', CocktailsViewSet)
+router.register(r'orders', OrderViewSet)
+router.register(r'offers', OfferViewSet)
+router.register(r'contacts', ContactViewSet)
+router.register(r'customers', CustomerInfoViewSet)
+
 
 urlpatterns = [
-    # For creating an order (POST request)
-    path('api/order/', CreateOrderView.as_view({'post': 'create'}), name='create_order'),
-
-    # For retrieving all orders (GET request)
-    path('api/orders/', GetAllOrdersView.as_view({'get': 'list'}), name='get_all_orders'),
-
-    # For retrieving an order by ID (GET request)
-    path('api/order/<int:order_id>/', GetOrderByIdView.as_view({'get': 'retrieve'}), name='get_order_by_id'),
-
-    # For updating order status (PATCH or PUT request depending on your use case)
-    path('api/order/<int:order_id>/update/', UpdateOrderStatusView.as_view({'patch': 'update'}), name='update_order_status'),
-
-    # For retrieving all products (GET request)
-    path('api/products/', GetProductsView.as_view({'get': 'list'}), name='get_products'),
+    path('api/', include(router.urls)),
+    # authentications
+    path('api/auth/login/', TokenObtainPairView.as_view(serializer_class=CustomTokenObtainPairSerializer), name='token_obtain_pair'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
