@@ -15,10 +15,10 @@ const DrinkCard: React.FC<DrinkCardProps> = ({ drink }) => {
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
       <div className="h-48 overflow-hidden">
-        <img 
-          src={drink.image} 
-          alt={drink.name} 
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+        <img
+          src={drink.image}
+          alt={drink.name}
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
       </div>
       <CardContent className="pt-4">
@@ -28,14 +28,14 @@ const DrinkCard: React.FC<DrinkCardProps> = ({ drink }) => {
             <p className="text-sm text-muted-foreground">{drink.category}</p>
           </div>
           <div className="text-right">
-            <span className="font-bold text-lg">${drink.price.toFixed(2)}</span>
+            <span className="font-bold text-lg">${drink.price}</span>
           </div>
         </div>
         <p className="mt-2 text-sm line-clamp-2">{drink.description}</p>
       </CardContent>
       <CardFooter>
-        <Button 
-          onClick={() => addToCart(drink)} 
+        <Button
+          onClick={() => addToCart(drink)}
           className="w-full gap-2"
         >
           <ShoppingCart size={16} />

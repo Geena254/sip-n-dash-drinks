@@ -9,7 +9,8 @@
     - Full Detail
     - Price
     - Image
-- Product Categories
+    
+- Drinks Categories
     - Name
     - Description (Short)
     - Number of Items
@@ -18,17 +19,11 @@
     - Name
     - Short Description
     - Number of Items
-- Cart
-    - Cart Quantity
-    - Cart Products
-    - Cart totoal
-    - Session Handled
+
+
 - Authentication (JWT)(tokenization)
     - Authorization
         - Admins
-        - Customers
-        - Staff
-        - NB **Access token with roles**
 
 - SQLite Database Testing
 - Payment Intergration
@@ -44,6 +39,7 @@
     - Short Description
     - Difficulty
     - Image
+
 - Offers
     - Title
     - Discount in %
@@ -53,6 +49,7 @@
     - Start Date
     - End Date
     - Code
+
 - Checkout Information (Customer Information)
     - Name
     - Email

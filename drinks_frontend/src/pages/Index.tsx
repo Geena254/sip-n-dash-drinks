@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Package, CupSoda, Tag, Percent } from 'lucide-react';
@@ -6,6 +6,17 @@ import DrinkCard from '@/components/DrinkCard';
 import { DrinkItem } from '@/context/CartContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getDrinkCategories, getDrinks, getOffers } from '@/service/apiService';
+
+interface Offer {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  discount: string;
+  code: string;
+}
+
 
 // Sample data for drinks
 const featuredDrinks: DrinkItem[] = [
@@ -59,12 +70,12 @@ const featuredDrinks: DrinkItem[] = [
   },
 ];
 
-const categories = [
-  { name: "Beer", count: 24, icon: CupSoda, bgColor: "bg-amber-50", textColor: "text-amber-600" },
-  { name: "Wine", count: 18, icon: CupSoda, bgColor: "bg-rose-50", textColor: "text-rose-600" },
-  { name: "Spirits", count: 32, icon: Package, bgColor: "bg-indigo-50", textColor: "text-indigo-600" },
-  { name: "Non-Alcoholic", count: 12, icon: CupSoda, bgColor: "bg-emerald-50", textColor: "text-emerald-600" }
-];
+// const categories = [
+//   { name: "Beer", count: 24, icon: CupSoda, bgColor: "bg-amber-50", textColor: "text-amber-600" },
+//   { name: "Wine", count: 18, icon: CupSoda, bgColor: "bg-rose-50", textColor: "text-rose-600" },
+//   { name: "Spirits", count: 32, icon: Package, bgColor: "bg-indigo-50", textColor: "text-indigo-600" },
+//   { name: "Non-Alcoholic", count: 12, icon: CupSoda, bgColor: "bg-emerald-50", textColor: "text-emerald-600" }
+// ];
 
 const specialOffers = [
   { title: "20% Off Wine", code: "WINE20", bgColor: "bg-gradient-to-br from-rose-100 to-pink-200" },
@@ -73,6 +84,52 @@ const specialOffers = [
 ];
 
 const Index: React.FC = () => {
+
+  const[categories, setCategories] = useState([])
+  const [drinks, setDrinks] = useState([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
+
+
+  // offers fetch
+  const fetchOffers = async () => {
+    try {
+      const data = await getOffers();
+      setOffers(data.slice(0, 3));
+    } catch (err) {
+      console.error('Error loading Offers:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchOffers();
+  }, []);
+
+  // drinks fetch
+  const fetchDrinks = async () => {
+    try {
+      const data = await getDrinks();
+      setDrinks(data.slice(0, 6));
+    } catch (err) {
+      console.error('Error loading drinks:', err);
+    }
+  };
+  useEffect(() => {
+    fetchDrinks();
+  }, []);
+
+  // drinks category fetch
+  const fetchDrinksCategories = async () => {
+    try {
+      const data = await getDrinkCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('Error loading drinks:', err);
+    }
+  };
+  useEffect(() => {
+    fetchDrinksCategories();
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero section with simplified clean design */}
@@ -116,20 +173,20 @@ const Index: React.FC = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
-            <Link 
-              to={`/categories`} 
+            <Link
+              to={`/categories`}
               state={{ category: category.name }}
               key={category.name}
               className="group"
             >
               <Card className="h-full overflow-hidden border-0 shadow-md transition-all group-hover:-translate-y-1 group-hover:shadow-lg">
-                <CardContent className={`p-6 ${category.bgColor}`}>
+                <CardContent className="p-6 bg-rose-50">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className={`font-medium text-lg ${category.textColor}`}>{category.name}</h3>
-                    <category.icon className={`${category.textColor}`} size={24} />
+                    <h3 className="font-medium text-lg bg-rose-50">{category.name}</h3>
+                    {/* <category.icon className="text-rose-600" size={24} /> */}
                   </div>
                   <div className="flex items-end justify-between">
-                    <p className="text-sm text-muted-foreground">{category.count} items</p>
+                    <p className="text-sm text-muted-foreground">{category.product_count} items</p>
                     <span className="text-primary text-sm font-medium">Browse →</span>
                   </div>
                 </CardContent>
@@ -148,9 +205,9 @@ const Index: React.FC = () => {
               View All
             </Link>
           </div>
-          
+
           <div className="drink-card-container">
-            {featuredDrinks.map((drink) => (
+            {drinks.map((drink) => (
               <DrinkCard key={drink.id} drink={drink} />
             ))}
           </div>
@@ -167,12 +224,12 @@ const Index: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {specialOffers.map((offer, index) => (
-            <Card 
-              key={index} 
+          {offers.map((offer) => (
+            <Card
+              key={offer.id}
               className="overflow-hidden border-0 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className={`${offer.bgColor} p-6 flex flex-col justify-between min-h-[180px]`}>
+              <div className="bg-gradient-to-br from-rose-100 to-pink-200 p-6 flex flex-col justify-between min-h-[180px]">
                 <Percent className="h-12 w-12 text-white/40" />
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">{offer.title}</h3>
