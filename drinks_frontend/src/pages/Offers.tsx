@@ -22,7 +22,6 @@ interface Offer {
 const Offers: React.FC = () => {
     const [offers, setOffers] = useState<Offer[]>([]);
 
-
   // offers fetch
   const fetchOffers = async () => {
     try {
@@ -37,9 +36,6 @@ const Offers: React.FC = () => {
     fetchOffers();
   }, []);
 
-
-
-
   // Format the date from ISO string to readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -49,8 +45,6 @@ const Offers: React.FC = () => {
       day: 'numeric'
     });
   };
-
-
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
@@ -69,13 +63,13 @@ const Offers: React.FC = () => {
             key={offer.id}
             className="overflow-hidden border-0 shadow-md transition-all transform hover:-translate-y-1 hover:shadow-lg"
           >
-            <div className='bg-gradient-to-br from-pink-50 to-rose-10 p-6'>
+            <CardContent className='bg-gradient-to-br from-pink-50 to-rose-10 p-6'>
               <div className="flex justify-between items-start">
                 <Badge variant="outline" className="bg-white/80 backdrop-blur-sm">
                   {offer.discount_type === 'percentage'
                     ? `${offer.discount}% OFF`
                     : offer.discount_type === 'fixed'
-                      ? (offer.discount > 0 ? `$${offer.discount} OFF` : 'FREE DELIVERY')
+                      ? (offer.discount > 0 ? `${offer.discount} OFF` : 'FREE DELIVERY')
                       : 'BUY 2 GET 1 FREE'}
                 </Badge>
                 {offer.category && (
@@ -93,7 +87,7 @@ const Offers: React.FC = () => {
                   <ShoppingBag className="h-16 w-16 text-primary opacity-20" />
                 )}
               </div>
-            </div>
+            </CardContent>
 
             <CardHeader>
               <CardTitle>{offer.title}</CardTitle>
