@@ -105,7 +105,9 @@ const Admin: React.FC = () => {
   }, []);  
   
   // In a real application, this would use a proper authentication system
-  const handleLogin = (e) => {
+  interface LoginEvent extends React.FormEvent<HTMLFormElement> {}
+
+  const handleLogin = (e: LoginEvent): void => {
     e.preventDefault();
     if (password === 'admin123') {
       setAuthenticated(true);
@@ -121,7 +123,16 @@ const Admin: React.FC = () => {
   };
 
   // View order details
-  const handleViewOrder = async (order) => {
+  interface Order {
+    id: number;
+    customer: string;
+    date: string;
+    status: string;
+    total: number;
+    items: { product: string; quantity: number }[];
+  }
+
+  const handleViewOrder = async (order: Order): Promise<void> => {
     if (!order || !order.id) {
       console.error('Invalid order object:', order);
       return;
@@ -129,7 +140,7 @@ const Admin: React.FC = () => {
     
     setCurrentOrder(order);
     setViewOrderDialog(true);
-  
+
     // Mark order as seen in backend
     try {
       await fetch(`http://localhost:8000/api/order/${order.id}/`, {
@@ -145,25 +156,61 @@ const Admin: React.FC = () => {
   };
 
   // View product details
-  const handleViewProduct = (product) => {
+  interface Product {
+    id: number;
+    name: string;
+    category: string;
+    stock: number;
+    price: number;
+    reorder: number;
+  }
+
+  const handleViewProduct = (product: Product) => {
     setCurrentProduct(product);
     setViewProductDialog(true);
   };
 
   // Edit product
-  const handleEditProduct = (product) => {
+  interface EditProduct {
+    id: number;
+    name: string;
+    category: string;
+    stock: number;
+    price: number;
+    reorder: number;
+  }
+
+  const handleEditProduct = (product: EditProduct): void => {
     setCurrentProduct(product);
     setEditProductDialog(true);
   };
 
   // Order product
-  const handleOrderProduct = (product) => {
+  interface OrderProduct {
+    id: number;
+    name: string;
+    category: string;
+    stock: number;
+    price: number;
+    reorder: number;
+  }
+
+  const handleOrderProduct = (product: OrderProduct): void => {
     setCurrentProduct(product);
     setOrderProductDialog(true);
   };
 
   // View customer details
-  const handleViewCustomer = (customer) => {
+  interface Customer {
+    id: number;
+    name: string;
+    email: string;
+    orders: number;
+    totalSpent: number;
+    lastOrder: string;
+  }
+
+  const handleViewCustomer = (customer: Customer): void => {
     setCurrentCustomer(customer);
     setViewCustomerDialog(true);
   };
@@ -786,7 +833,7 @@ const Admin: React.FC = () => {
               <Button
                 onClick={async () => {
                   try {
-                    await fetch(`http://localhost:8000/api/order/${order_id}/update/`, {
+                    await fetch(`http://localhost:8000/api/order/${currentOrder.id}/update/`, {
                       method: 'PATCH',
                       headers: {
                         'Content-Type': 'application/json',

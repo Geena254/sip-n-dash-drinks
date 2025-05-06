@@ -19,7 +19,11 @@
     - Name
     - Short Description
     - Number of Items
-
+- Cart
+    - Cart Quantity
+    - Cart Products
+    - Cart total
+    - Session Handled
 
 - Authentication (JWT)(tokenization)
     - Authorization
