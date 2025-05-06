@@ -106,13 +106,32 @@ const Checkout: React.FC = () => {
 
     console.log(formData);
     try {
+      // Create order summary object
+      const orderSummary = {
+        subtotal: cartTotal,
+        deliveryFee,
+        tax,
+        total,
+        deliveryArea: formData.deliveryArea,
+        payment_method: selectedPayment,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          itemTotal: item.price * item.quantity
+        }))
+      };
+
       const res = await axios.post('http://localhost:8000/api/order/', {
         ...formData,
-          items: items.map(item => ({
-            item_id: item.id,
-            quantity: item.quantity
-          }))
-        }, {
+        payment_method: selectedPayment,
+        orderSummary,
+        items: items.map(item => ({
+          item_id: item.id,
+          quantity: item.quantity
+        }))
+      }, {
         headers: {
           // 'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -297,6 +316,7 @@ const Checkout: React.FC = () => {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
+                  <option value="">Select area...</option>
                   {deliveryAreas.map(area => (
                     <option key={area.name} value={area.name}>
                       {area.name} - ${area.price.toFixed(2)}
