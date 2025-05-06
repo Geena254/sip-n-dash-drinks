@@ -145,12 +145,18 @@ class Contact(models.Model):
 
 class Offer(models.Model):
     '''Model definition for Offers.'''
+    CHOICES = (
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed'),
+        ('bogo', 'Bogo'),
+    )
     title = models.CharField(default='', max_length=50)
     description = models.TextField(default='')
     category = models.CharField(default='', max_length=50)
     # image = models.ImageField(upload_to='offers/', default='')
     discount = models.CharField(default='', max_length=50)
     code = models.CharField(default='', max_length=50)
+    discount_type = models.CharField(default='percentage', choices=CHOICES, max_length=50)
     # start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField()
 

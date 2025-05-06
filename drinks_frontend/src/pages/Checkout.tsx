@@ -14,7 +14,7 @@ const Checkout: React.FC = () => {
   const { items, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,14 +25,14 @@ const Checkout: React.FC = () => {
     payment_method: '',
     deliveryArea: ''
   });
-  
+
   const deliveryAreas = [
     { name: 'Mnarani', price: 1.50 },
     { name: 'Bofa', price: 2.00 },
     { name: 'Tezo', price: 2.50 },
     { name: 'Mtondia', price: 3.00 },
   ];
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -42,21 +42,21 @@ const Checkout: React.FC = () => {
     cardExpiry: '',
     cardCVC: '',
   });
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleLocationSelect = (address: string, lat: number, lng: number) => {
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData(prev => ({
+      ...prev,
       address,
       latitude: lat,
       longitude: lng
     }));
   };
-  
+
   const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
   const deliveryFee = selectedArea ? selectedArea.price : 0;
   const tax = cartTotal * 0.08;
@@ -83,7 +83,7 @@ const Checkout: React.FC = () => {
 
     const requiredFields = ['name', 'email', 'phone', 'address'];
     const emptyFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-    
+
     if (emptyFields.length > 0) {
       toast({
         title: "Please fill in all fields",
@@ -103,7 +103,8 @@ const Checkout: React.FC = () => {
       setIsSubmitting(false);
       return;
     }
-    
+
+    console.log(formData);
     try {
       const res = await axios.post('http://localhost:8000/api/order/', {
         ...formData,
@@ -120,11 +121,11 @@ const Checkout: React.FC = () => {
 
       const data = res.data;
       clearCart();
-      navigate('/confirmation', { 
-        state: { 
+      navigate('/confirmation', {
+        state: {
           orderNumber: data.order_id || Math.floor(100000 + Math.random() * 900000).toString(),
           deliveryTime: '30-45 minutes'
-        } 
+        }
       });
     } catch (err: any) {
       toast({
@@ -136,7 +137,7 @@ const Checkout: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
       <h1 className="text-3xl font-bold mb-6 text-center md:text-left bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Complete Your Order</h1>
@@ -149,29 +150,29 @@ const Checkout: React.FC = () => {
                 <span>Delivery Information</span>
               </CardTitle>
             </CardHeader>
-            
+
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input 
-                      id="name" 
-                      name="name" 
-                      placeholder="John Doe" 
-                      value={formData.name} 
-                      onChange={handleChange} 
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={handleChange}
                       className="transition-all focus-within:border-primary"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      name="email" 
-                      type="email" 
-                      placeholder="john@example.com" 
-                      value={formData.email} 
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="john@example.com"
+                      value={formData.email}
                       onChange={handleChange}
                       className="transition-all focus-within:border-primary"
                     />
@@ -179,16 +180,16 @@ const Checkout: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input 
-                    id="phone" 
-                    name="phone" 
-                    placeholder="(555) 123-4567" 
-                    value={formData.phone} 
+                  <Input
+                    id="phone"
+                    name="phone"
+                    placeholder="(555) 123-4567"
+                    value={formData.phone}
                     onChange={handleChange}
                     className="transition-all focus-within:border-primary"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="address">Delivery Location</Label>
                   <LocationPicker
@@ -221,10 +222,10 @@ const Checkout: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="pt-4">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all text-white font-medium py-3 h-auto"
                     disabled={isSubmitting || items.length === 0}
                   >
@@ -239,13 +240,13 @@ const Checkout: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="md:col-span-1">
           <Card className="sticky top-20 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
               <CardTitle className="text-xl">Order Summary</CardTitle>
             </CardHeader>
-            
+
             <CardContent className="p-6">
               <div className="space-y-4">
                 {items.length > 0 ? (
@@ -268,7 +269,7 @@ const Checkout: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="border-t mt-6 pt-4 space-y-3">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
@@ -369,7 +370,7 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
             )}
-      
+
             <div className="mt-4">
               <Button
                 className="w-full"
