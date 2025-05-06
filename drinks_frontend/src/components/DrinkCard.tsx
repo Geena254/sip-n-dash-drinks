@@ -5,8 +5,17 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 
+type Drink = {
+  id: number;
+  category: string;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+};
+
 interface DrinkCardProps {
-  drink: DrinkItem;
+  drink: Drink;
 }
 
 const DrinkCard: React.FC<DrinkCardProps> = ({ drink }) => {

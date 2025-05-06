@@ -111,7 +111,7 @@ class Cocktails(models.Model):
     '''Model definition for Cocktails'''
     title = models.CharField(default='', max_length=50)
     instructions = models.JSONField(default=dict)
-    time = models.TimeField(auto_now_add=True)
+    time = models.CharField(default='', max_length=20)
     ingredients = models.JSONField(default=dict)
     description = models.TextField()
     difficulty = models.CharField(default='', max_length=50)

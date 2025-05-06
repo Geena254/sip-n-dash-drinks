@@ -46,6 +46,7 @@ export const login = async (email: string, password: string) => {
     body: JSON.stringify({ email, password }),
   });
 
+  
   const data = await res.json();
 
   if (data.access) {

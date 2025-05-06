@@ -1,6 +1,15 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+type Drink = {
+  id: number;
+  category: string;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+};
+
 export interface DrinkItem {
   id: number;
   name: string;
@@ -10,7 +19,7 @@ export interface DrinkItem {
   description: string;
 }
 
-interface CartItem extends DrinkItem {
+interface CartItem extends Drink {
   quantity: number;
 }
 
