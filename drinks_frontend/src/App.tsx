@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,7 +16,7 @@ import Offers from "./pages/Offers";
 import Recipes from "./pages/Recipes";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
-import AgeVerificationDialog from "./components/AgeVerificationDialog";
+import AgeVerificationDialog from "@/components/AgeVerificationDialog";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +27,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AgeVerificationDialog />
+          <AgeVerificationDialog/>
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-grow">

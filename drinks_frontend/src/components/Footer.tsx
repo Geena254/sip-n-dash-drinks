@@ -1,4 +1,4 @@
-
+import { Link } from 'react-router-dom';
 import React from 'react';
 import { FaFacebook, FaTwitter, FaInstagram, FaWhatsapp, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 
@@ -17,18 +17,18 @@ const Footer: React.FC = () => {
                 </span>
                 <p className="text-gray-600 mb-4">Your one-stop solution for all your drink needs.</p>
                 <div className="flex space-x-4 mt-4">
-                <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
-                    <FaFacebook size={20} />
-                </a>
-                <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
-                    <FaTwitter size={20} />
-                </a>
-                <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
-                    <FaInstagram size={20} />
-                </a>
-                <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
-                    <FaWhatsapp size={20} />
-                </a>
+                    <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
+                        <FaFacebook size={20} />
+                    </a>
+                    <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
+                        <FaTwitter size={20} />
+                    </a>
+                    <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
+                        <FaInstagram size={20} />
+                    </a>
+                    <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
+                        <FaWhatsapp size={20} />
+                    </a>
                 </div>
             </div>
             
@@ -36,9 +36,10 @@ const Footer: React.FC = () => {
             <div>
                 <h3 className="text-xl font-bold barrush-gradient-text">Quick Links</h3>
                 <ul className="space-y-2">
-                <li><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Shop</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Cocktail Recipes</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Categories</a></li>
+                <li><Link to='/categories'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Shop</a></Link></li>
+                <li><Link to='/recipes'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Cocktail Recipes</a></Link></li>
+                <li><Link to='/categories'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Categories</a></Link></li>
+                <li><Link to='/cart'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Cart</a></Link></li>
                 </ul>
             </div>
             
@@ -56,7 +57,7 @@ const Footer: React.FC = () => {
                 </li>
                 <li className="flex items-start">
                     <FaMapMarkerAlt className="mr-2 mt-1 text-purple-500" />
-                    <span className="text-gray-600">123 Bar Street, Drink City, DR 45678</span>
+                    <span className="text-gray-600">Kilifi, Kenya</span>
                 </li>
                 </ul>
             </div>

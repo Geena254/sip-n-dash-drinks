@@ -117,7 +117,7 @@ class Drinks(models.Model):
     price = models.DecimalField(default=0, decimal_places=2, max_digits=100)
     description = models.TextField()
     category = models.ForeignKey(DrinksCategory, on_delete=models.CASCADE, related_name='drinks')
-    image = models.ImageField(upload_to='products/', default='')
+    image = models.ImageField(upload_to='products/', default='', null=True, blank=True)
 
     class Meta:
         '''Meta definition for Drink.'''
@@ -132,12 +132,12 @@ class Cocktails(models.Model):
     '''Model definition for Cocktails'''
     title = models.CharField(default='', max_length=50)
     instructions = models.JSONField(default=dict)
-    time = models.CharField(default='', max_length=20)
+    time = models.CharField(default='', max_length=50)
     ingredients = models.JSONField(default=dict)
     description = models.TextField()
     difficulty = models.CharField(default='', max_length=50)
     category = models.ForeignKey(CocktailsCategory, on_delete=models.CASCADE, related_name='cocktails')
-    image = models.ImageField(upload_to='products/', default='')
+    image = models.ImageField(upload_to='products/', default='', null=True, blank=True)
     serve_count = models.CharField(default='', max_length=50)
 
     class Meta:
