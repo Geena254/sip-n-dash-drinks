@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox, Search, Plus, AlertTriangle, Settings, Eye, Edit, Archive } from 'lucide-react';
 
+// Sample chart data
 const chartData = [
   { name: 'Apr 25', visitors: 120, orders: 4, revenue: 172 },
   { name: 'Apr 26', visitors: 145, orders: 6, revenue: 235 },
@@ -26,20 +27,11 @@ const chartData = [
 
 // Sample inventory data
 const inventoryData = [
-  { id: 1, name: 'Premium Scotch', category: 'Spirits', stock: 24, price: 58.99, reorder: 10 },
-  { id: 2, name: 'Craft IPA', category: 'Beer', stock: 48, price: 12.99, reorder: 20 },
-  { id: 3, name: 'Red Wine', category: 'Wine', stock: 15, price: 24.50, reorder: 8 },
-  { id: 4, name: 'Vodka', category: 'Spirits', stock: 6, price: 18.75, reorder: 10 },
-  { id: 5, name: 'Non-Alcoholic Beer', category: 'Non-Alcoholic', stock: 30, price: 8.99, reorder: 15 },
-];
-
-// Sample user data
-const userData = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', orders: 12, totalSpent: 458.50, lastOrder: '2025-05-01' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', orders: 8, totalSpent: 325.75, lastOrder: '2025-04-28' },
-  { id: 3, name: 'Alex Johnson', email: 'alex@example.com', orders: 5, totalSpent: 187.90, lastOrder: '2025-04-30' },
-  { id: 4, name: 'Sarah Williams', email: 'sarah@example.com', orders: 3, totalSpent: 95.47, lastOrder: '2025-04-25' },
-  { id: 5, name: 'Michael Brown', email: 'michael@example.com', orders: 15, totalSpent: 612.80, lastOrder: '2025-05-01' },
+  { id: 1, name: 'Premium Scotch', category: 'Spirits', stock: 24, price: 5899, reorder: 10 },
+  { id: 2, name: 'Craft IPA', category: 'Beer', stock: 48, price: 1299, reorder: 20 },
+  { id: 3, name: 'Red Wine', category: 'Wine', stock: 15, price: 2450, reorder: 8 },
+  { id: 4, name: 'Vodka', category: 'Spirits', stock: 6, price: 1875, reorder: 10 },
+  { id: 5, name: 'Non-Alcoholic Beer', category: 'Non-Alcoholic', stock: 30, price: 899, reorder: 15 },
 ];
 
 // Sample sales by category data
@@ -59,12 +51,7 @@ const Admin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [lowStockAlerts, setLowStockAlerts] = useState([]);
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: 'New order #1245 received', read: false, time: '10 minutes ago' },
-    { id: 2, message: 'Inventory alert: Premium Scotch low on stock', read: false, time: '30 minutes ago' },
-    { id: 3, message: 'Customer feedback received', read: true, time: '2 hours ago' },
-    { id: 4, message: 'Payment processed for order #1242', read: true, time: '3 hours ago' },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [viewOrderDialog, setViewOrderDialog] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
@@ -74,76 +61,169 @@ const Admin = () => {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [viewCustomerDialog, setViewCustomerDialog] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
-  // Order data
   const [orderData, setOrderData] = useState([]);
-  const [newOrderAlert, setNewOrderAlert] = useState(false);
-  
+  const [customerData, setCustomerData] = useState([]);
+
+  const convertItemsObjectToArray = (itemsObj) => {
+    if (!itemsObj || typeof itemsObj !== "object") return [];
+    return Object.entries(itemsObj).map(([name, details]) => ({
+      name,
+      quantity: details.quantity,
+      price: details.price || 0,
+    }));
+  };
+
   const fetchOrders = async () => {
     try {
       const res = await fetch('http://localhost:8000/api/orders/');
+      if (!res.ok) throw new Error('Failed to fetch orders');
       const data = await res.json();
       
-      // Process and standardize order data
-      const processedData = data.map(order => ({
-        ...order,
-        // Ensure these properties exist with default values
-        id: order.order_id || order.id || 0,
+      const processedData = data.map((order) => ({
+        id: order.order_id || order.id,
         customer: order.customer?.name || "Anonymous",
-        date: order.date || "Unknown date",
-        status: order.status || "Processing",
-        total: parseFloat(order.total) || 0,
-        items: Array.isArray(order.items) ? order.items : []
+        customerObject: order.customer,
+        delivery_area: order.delivery_area || "Unknown",
+        county: order.county || "Unknown",
+        items: convertItemsObjectToArray(order.items || order.products),
+        date: order.date || new Date().toISOString().split('T')[0],
+        status: order.status || "initiated",
+        total: parseFloat(order.order_total) || 0,
+        seen: order.seen || false
       }));
-      
+
       setOrderData(processedData);
-  
-      // check for unseen orders
-      const hasNew = data.some(order => order.seen === false);
-      if (hasNew) {
+
+      // Update notifications for new orders
+      const newOrders = processedData.filter(order => !order.seen);
+      if (newOrders.length > 0) {
         setNotifications(prev => [
-          { id: Date.now(), message: '🆕 New order received!', read: false, time: 'Just now' },
-          ...prev,
+          ...newOrders.map(order => ({
+            id: Date.now() + order.id,
+            message: `🆕 New order #${order.id} received from ${order.customer}`,
+            read: false,
+            time: 'Just now'
+          })),
+          ...prev
         ]);
-        setNewOrderAlert(true);
       }
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      // Set some default data for demo/development purposes
+      toast({
+        title: "Error",
+        description: "Failed to fetch orders. Using sample data.",
+        variant: "destructive"
+      });
       setOrderData([
-        { 
-          id: 1245, 
-          order_id: 1245,
-          customer: "John Doe", 
-          date: "2025-05-01", 
-          status: "Processing", 
-          total: 89.97,
+        {
+          id: 1245,
+          customer: "John Doe",
+          customerObject: { id: 1, name: "John Doe", email: "john@example.com" },
+          delivery_area: "Downtown",
+          county: "Nairobi",
           items: [
-            { product: "Craft IPA", quantity: 3 },
-            { product: "Premium Scotch", quantity: 1 }
-          ]
-        },
-        { 
-          id: 1244, 
-          order_id: 1244,
-          customer: "Jane Smith", 
-          date: "2025-04-30", 
-          status: "Delivered", 
-          total: 45.50,
-          items: [
-            { product: "Red Wine", quantity: 2 }
-          ]
+            { name: "Craft IPA", quantity: 3, price: 1299 },
+            { name: "Premium Scotch", quantity: 1, price: 5899 }
+          ],
+          date: "2025-05-01",
+          status: "initiated",
+          total: 8997,
+          seen: true
         }
       ]);
     }
   };
-  
+
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/customers/');
+      if (!res.ok) throw new Error('Failed to fetch customers');
+      const data = await res.json();
+      
+      const processedCustomers = data.map(customer => ({
+        id: customer.id,
+        name: customer.name || "Unknown",
+        email: customer.email || "N/A",
+        orders: customer.orders?.length || 0,
+        totalSpent: customer.orders?.reduce((sum, order) => sum + (parseFloat(order.order_total) || 0), 0) || 0,
+        lastOrder: customer.orders?.length > 0 ? customer.orders[0].date : "N/A",
+        address: customer.address || "N/A",
+        county: customer.county || "N/A",
+        phone: customer.phone || "N/A"
+      }));
+      
+      setCustomerData(processedCustomers);
+    } catch (err) {
+      console.error("Failed to fetch customers:", err);
+      setCustomerData([
+        {
+          id: 1,
+          name: "John Doe",
+          email: "john@example.com",
+          orders: 12,
+          totalSpent: 458.50,
+          lastOrder: "2025-05-01",
+          address: "123 Main St, Downtown",
+          county: "Nairobi",
+          phone: "+254 700 123 456"
+        }
+      ]);
+    }
+  };
+
   useEffect(() => {
-    fetchOrders(); // initial load
-    const interval = setInterval(fetchOrders, 5000); // poll every 5 sec
+    fetchOrders();
+    fetchCustomers();
+    const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
-  }, []);  
-  
-  // In a real application, this would use a proper authentication system
+  }, []);
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/orders/${orderId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to update status");
+      }
+
+      setOrderData(prev =>
+        prev.map(order =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: `Order #${orderId} status updated to ${newStatus}`,
+      });
+
+      // Update notification for status change
+      setNotifications(prev => [
+        {
+          id: Date.now(),
+          message: `Order #${orderId} status changed to ${newStatus}`,
+          read: false,
+          time: 'Just now'
+        },
+        ...prev
+      ]);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
     if (password === 'admin123') {
@@ -154,69 +234,75 @@ const Admin = () => {
     }
   };
 
-  // Navigate to settings page
   const navigateToSettings = () => {
     navigate('/settings');
   };
 
-  // View order details
   const handleViewOrder = async (order) => {
-    if (!order || !order.id) {
-      console.error('Invalid order object:', order);
-      return;
-    }
-    
+    if (!order?.id) return;
     setCurrentOrder(order);
     setViewOrderDialog(true);
-
-    // Mark order as seen in backend
-    try {
-      await fetch(`http://localhost:8000/api/order/${order.id}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ seen: true })
-      });
-    } catch (error) {
-      console.error('Failed to mark order as seen:', error);
+    
+    if (!order.seen) {
+      try {
+        await fetch(`http://localhost:8000/api/orders/${order.id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ seen: true })
+        });
+        setOrderData(prev =>
+          prev.map(o => o.id === order.id ? { ...o, seen: true } : o)
+        );
+        setNotifications(prev =>
+          prev.map(n => 
+            n.message.includes(`Order #${order.id}`) ? { ...n, read: true } : n
+          )
+        );
+      } catch (error) {
+        console.error('Failed to mark order as seen:', error);
+      }
     }
   };
 
-  // View product details
   const handleViewProduct = (product) => {
     setCurrentProduct(product);
     setViewProductDialog(true);
   };
 
-  // Edit product
   const handleEditProduct = (product) => {
     setCurrentProduct(product);
     setEditProductDialog(true);
   };
 
-  // Order product
   const handleOrderProduct = (product) => {
     setCurrentProduct(product);
     setOrderProductDialog(true);
   };
 
-  // View customer details
   const handleViewCustomer = (customer) => {
     setCurrentCustomer(customer);
     setViewCustomerDialog(true);
   };
 
-  // Place sample order for inventory
   const handlePlaceOrder = () => {
     setOrderProductDialog(false);
     toast({
       title: "Order Placed",
       description: `Ordered ${currentProduct?.name} successfully.`,
     });
+    setNotifications(prev => [
+      {
+        id: Date.now(),
+        message: `New stock order placed for ${currentProduct?.name}`,
+        read: false,
+        time: 'Just now'
+      },
+      ...prev
+    ]);
   };
 
-  // Save edited product
   const handleSaveProduct = () => {
     setEditProductDialog(false);
     toast({
@@ -225,8 +311,7 @@ const Admin = () => {
     });
   };
 
-  // Calculate low stock items
-  React.useEffect(() => {
+  useEffect(() => {
     const alerts = inventoryData
       .filter(item => item.stock <= item.reorder)
       .map(item => ({
@@ -235,10 +320,9 @@ const Admin = () => {
         stock: item.stock,
         reorder: item.reorder
       }));
-    
     setLowStockAlerts(alerts);
   }, []);
-  
+
   if (!authenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -270,17 +354,12 @@ const Admin = () => {
     );
   }
 
-  // Total calculations for summary
   const totalOrders = orderData.length;
-  const totalRevenue = orderData.reduce((sum, order) => {
-    const orderTotal = typeof order.total === 'number' ? order.total : 0;
-    return sum + orderTotal;
-  }, 0);
+  const totalRevenue = orderData.reduce((sum, order) => sum + (order.total || 0), 0);
   const totalVisitors = chartData[chartData.length - 1].visitors;
   const totalInventoryValue = inventoryData.reduce((sum, item) => sum + (item.stock * item.price), 0);
-  const totalCustomers = userData.length;
+  const totalCustomers = customerData.length;
   
-  // Calculate percent change
   const revenueYesterday = chartData[chartData.length - 2].revenue;
   const revenueToday = chartData[chartData.length - 1].revenue;
   const revenueChange = ((revenueToday - revenueYesterday) / revenueYesterday * 100).toFixed(1);
@@ -330,9 +409,11 @@ const Admin = () => {
                       key={notification.id} 
                       className={`p-3 border-b text-sm ${!notification.read ? 'bg-muted' : ''} hover:bg-muted/50 cursor-pointer`}
                       onClick={() => {
-                        setNotifications(notifications.map(n => 
-                          n.id === notification.id ? { ...n, read: true } : n
-                        ));
+                        setNotifications(prev =>
+                          prev.map(n => 
+                            n.id === notification.id ? { ...n, read: true } : n
+                          )
+                        );
                       }}
                     >
                       <div className="flex items-start gap-2">
@@ -356,7 +437,7 @@ const Admin = () => {
           </Button>
         </div>
       </div>
-      
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card className="shadow-sm hover:shadow transition-shadow">
@@ -365,7 +446,7 @@ const Admin = () => {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">KES {totalRevenue}</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               {Number(revenueChange) >= 0 ? (
                 <>
@@ -425,7 +506,7 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalInventoryValue.toFixed(2)}
+              KES {totalInventoryValue.toFixed(2)}
             </div>
             {lowStockAlerts.length > 0 ? (
               <p className="text-xs text-amber-600 flex items-center mt-1">
@@ -440,8 +521,7 @@ const Admin = () => {
           </CardContent>
         </Card>
       </div>
-      
-      {/* Alerts section for critical issues */}
+
       {lowStockAlerts.some(item => item.stock <= item.reorder / 2) && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -450,8 +530,7 @@ const Admin = () => {
           </AlertDescription>
         </Alert>
       )}
-      
-      {/* Charts and tables */}
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="w-full md:w-auto mb-2 flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -459,7 +538,7 @@ const Admin = () => {
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
@@ -583,7 +662,7 @@ const Admin = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="orders">
           <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -592,7 +671,9 @@ const Admin = () => {
                 <CardDescription>Latest orders placed on your store</CardDescription>
               </div>
               <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                <Select defaultValue="all">
+                <Select defaultValue="all" onValueChange={(value) => {
+                  // Implement filtering logic here if needed
+                }}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
@@ -600,7 +681,9 @@ const Admin = () => {
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="initiated">Initiated</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="unpaid">Unpaid</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="icon">
@@ -618,6 +701,8 @@ const Admin = () => {
                       <TableHead>Customer</TableHead>
                       <TableHead>Items</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead>Delivery Area</TableHead>
+                      <TableHead>County</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead>Actions</TableHead>
@@ -625,18 +710,33 @@ const Admin = () => {
                   </TableHeader>
                   <TableBody>
                     {orderData.map((order) => (
-                      <TableRow key={order.id || order.order_id}>
-                        <TableCell className="font-medium">#{order.id || order.order_id}</TableCell>
-                        <TableCell>{order.customer || "N/A"}</TableCell>
-                        <TableCell>{Array.isArray(order.items) ? order.items.length : 0}</TableCell>
-                        <TableCell>{order.date || "Unknown"}</TableCell>
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell>{order.customer}</TableCell>
                         <TableCell>
-                          <Badge variant={order.status === 'Delivered' ? "default" : "secondary"}>
-                            {order.status || "Processing"}
-                          </Badge>
+                          {order.items?.length || 0} item{order.items?.length === 1 ? '' : 's'}
+                        </TableCell>
+                        <TableCell>{order.date}</TableCell>
+                        <TableCell>{order.delivery_area}</TableCell>
+                        <TableCell>{order.county}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={order.status}
+                            onValueChange={(value) => updateOrderStatus(order.id, value)}
+                          >
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="initiated">Initiated</SelectItem>
+                              <SelectItem value="paid">Paid</SelectItem>
+                              <SelectItem value="unpaid">Unpaid</SelectItem>
+                              <SelectItem value="delivered">Delivered</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className="text-right">
-                          ${typeof order.total === 'number' ? order.total.toFixed(2) : '0.00'}
+                          KES {order.total}
                         </TableCell>
                         <TableCell>
                           <Button size="sm" variant="outline" onClick={() => handleViewOrder(order)}>
@@ -652,7 +752,7 @@ const Admin = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="inventory">
           <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -692,7 +792,7 @@ const Admin = () => {
                         <TableCell className="font-medium">#{product.id}</TableCell>
                         <TableCell>{product.name}</TableCell>
                         <TableCell>{product.category}</TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>KES {product.price}</TableCell>
                         <TableCell>{product.stock}</TableCell>
                         <TableCell>
                           <Badge 
@@ -727,7 +827,7 @@ const Admin = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="customers">
           <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -749,6 +849,8 @@ const Admin = () => {
                       <TableHead>ID</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>County</TableHead>
                       <TableHead>Orders</TableHead>
                       <TableHead>Last Order</TableHead>
                       <TableHead>Total Spent</TableHead>
@@ -756,16 +858,18 @@ const Admin = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {userData.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">#{user.id}</TableCell>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.orders}</TableCell>
-                        <TableCell>{user.lastOrder}</TableCell>
-                        <TableCell>${user.totalSpent.toFixed(2)}</TableCell>
+                    {customerData.map((customer) => (
+                      <TableRow key={customer.id}>
+                        <TableCell className="font-medium">#{customer.id}</TableCell>
+                        <TableCell>{customer.name}</TableCell>
+                        <TableCell>{customer.email}</TableCell>
+                        <TableCell>{customer.phone}</TableCell>
+                        <TableCell>{customer.county}</TableCell>
+                        <TableCell>{customer.orders}</TableCell>
+                        <TableCell>{customer.lastOrder}</TableCell>
+                        <TableCell>KES {customer.totalSpent}</TableCell>
                         <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => handleViewCustomer(user)}>
+                          <Button size="sm" variant="outline" onClick={() => handleViewCustomer(customer)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View profile
                           </Button>
@@ -801,14 +905,22 @@ const Admin = () => {
                   <p className="font-medium">{currentOrder.date}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Delivery Area</p>
+                  <p className="font-medium">{currentOrder.delivery_area}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">County</p>
+                  <p className="font-medium">{currentOrder.county}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={currentOrder.status === 'Delivered' ? "default" : "secondary"}>
+                  <Badge variant={currentOrder.status === 'delivered' ? "default" : "secondary"}>
                     {currentOrder.status}
                   </Badge>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-medium">${currentOrder.total.toFixed(2)}</p>
+                  <p className="font-medium">KES {currentOrder.total}</p>
                 </div>
               </div>
               
@@ -816,9 +928,15 @@ const Admin = () => {
                 <h3 className="font-medium mb-2">Order Items</h3>
                 <div className="bg-muted p-3 rounded-md">
                   <ul className="list-disc pl-5 mt-2">
-                  {currentOrder?.items.map((item, index) => (
-                    <li key={index}>{item.product} x{item.quantity}</li>
-                  ))}
+                    {currentOrder.items?.length > 0 ? (
+                      currentOrder.items.map((item, index) => (
+                        <li key={index}>
+                          {item.name} × {item.quantity} @ KES {item.price}
+                        </li>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted">No items found in this order.</p>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -826,26 +944,15 @@ const Admin = () => {
           )}
           <DialogFooter className="justify-between">
             <Button variant="outline" onClick={() => setViewOrderDialog(false)}>Close</Button>
-            {currentOrder?.status !== 'Delivered' && (
+            {currentOrder?.status !== 'delivered' && (
               <Button
                 onClick={async () => {
                   try {
-                    await fetch(`http://localhost:8000/api/order/${currentOrder.id}/update/`, {
-                      method: 'PATCH',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ status: 'Delivered' })
-                    });
-                    toast({ title: "Order marked as delivered" });
+                    await updateOrderStatus(currentOrder.id, 'delivered');
                     setViewOrderDialog(false);
-                    fetchOrders();
+                    setCurrentOrder(prev => ({ ...prev, status: 'delivered' }));
                   } catch (error) {
-                    toast({
-                      title: "Update failed",
-                      description: "Could not update order status.",
-                      variant: "destructive"
-                    });
+                    console.error('Failed to mark as delivered:', error);
                   }
                 }}
               >
@@ -878,7 +985,7 @@ const Admin = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="font-medium">${currentProduct.price.toFixed(2)}</p>
+                  <p className="font-medium">KES {currentProduct.price}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Current Stock</p>
@@ -926,11 +1033,14 @@ const Admin = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="name">Product Name</label>
-                <Input id="name" value={currentProduct.name} onChange={() => {}} />
+                <Input id="name" value={currentProduct.name} onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="category">Category</label>
-                <Select defaultValue={currentProduct.category}>
+                <Select 
+                  value={currentProduct.category}
+                  onValueChange={(value) => setCurrentProduct({...currentProduct, category: value})}
+                >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -944,17 +1054,32 @@ const Admin = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="price">Price ($)</label>
-                  <Input id="price" type="number" value={currentProduct.price} onChange={() => {}} />
+                  <label className="text-sm font-medium" htmlFor="price">Price (KES)</label>
+                  <Input 
+                    id="price" 
+                    type="number" 
+                    value={currentProduct.price} 
+                    onChange={(e) => setCurrentProduct({...currentProduct, price: parseFloat(e.target.value)})} 
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="stock">Stock Quantity</label>
-                  <Input id="stock" type="number" value={currentProduct.stock} onChange={() => {}} />
+                  <Input 
+                    id="stock" 
+                    type="number" 
+                    value={currentProduct.stock} 
+                    onChange={(e) => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})} 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="reorder">Reorder Point</label>
-                <Input id="reorder" type="number" value={currentProduct.reorder} onChange={() => {}} />
+                <Input 
+                  id="reorder" 
+                  type="number" 
+                  value={currentProduct.reorder} 
+                  onChange={(e) => setCurrentProduct({...currentProduct, reorder: parseInt(e.target.value)})} 
+                />
               </div>
             </div>
           )}
@@ -1037,6 +1162,18 @@ const Admin = () => {
                   <p className="font-medium">{currentCustomer.email}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="font-medium">{currentCustomer.phone}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">County</p>
+                  <p className="font-medium">{currentCustomer.county}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Address</p>
+                  <p className="font-medium">{currentCustomer.address}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Total Orders</p>
                   <p className="font-medium">{currentCustomer.orders}</p>
                 </div>
@@ -1046,28 +1183,28 @@ const Admin = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="font-medium">${currentCustomer.totalSpent.toFixed(2)}</p>
+                  <p className="font-medium">KES {currentCustomer.totalSpent}</p>
                 </div>
               </div>
               
               <div className="space-y-2">
                 <h3 className="font-medium">Recent Orders</h3>
                 <div className="bg-muted p-3 rounded-md">
-                  <p>Last 3 orders (would come from database in real app)</p>
-                  <ul className="mt-2 space-y-2">
-                    <li className="flex justify-between">
-                      <span>#1245 - 2025-05-01</span>
-                      <span>$59.99</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>#1232 - 2025-04-25</span>
-                      <span>$87.50</span>
-                    </li>
-                    <li className="flex justify-between">
-                      <span>#1224 - 2025-04-18</span>
-                      <span>$32.99</span>
-                    </li>
-                  </ul>
+                  {orderData.filter(order => order.customer === currentCustomer.name).length > 0 ? (
+                    <ul className="mt-2 space-y-2">
+                      {orderData
+                        .filter(order => order.customer === currentCustomer.name)
+                        .slice(0, 3)
+                        .map(order => (
+                          <li key={order.id} className="flex justify-between">
+                            <span>#{order.id} - {order.date}</span>
+                            <span>KES {order.total}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  ) : (
+                    <p>No recent orders found</p>
+                  )}
                 </div>
               </div>
             </div>

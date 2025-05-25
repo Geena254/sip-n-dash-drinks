@@ -92,7 +92,7 @@ class Order(models.Model):
     order_id = models.CharField(max_length=200, unique=True, editable=False)
     customer = models.ForeignKey('CustomerInfo', on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
     products = models.JSONField(default=dict)
-    status = models.CharField(max_length=50, choices=STATUS, default='unpaid')
+    status = models.CharField(max_length=20, choices=STATUS, default='initiated')
     order_total = models.CharField(max_length=200, default='')
     payment_method = models.CharField(max_length=100, choices=PAYMENT_METHODS,default='m-pesa')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -114,7 +114,7 @@ class Order(models.Model):
 class Drinks(models.Model):
     '''Model definition for Drink.'''
     name = models.CharField(default='', max_length=50)
-    price = models.DecimalField(default=0, decimal_places=2, max_digits=100)
+    price = models.IntegerField(default=0)
     description = models.TextField()
     category = models.ForeignKey(DrinksCategory, on_delete=models.CASCADE, related_name='drinks')
     image = models.ImageField(upload_to='products/', default='', null=True, blank=True)

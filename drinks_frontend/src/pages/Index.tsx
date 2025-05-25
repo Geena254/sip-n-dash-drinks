@@ -7,6 +7,8 @@ import { DrinkItem } from '@/context/CartContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getDrinkCategories, getDrinks, getOffers } from '@/service/apiService';
+import Lottie from "lottie-react";
+import devAnimation from "../../public/images/delivery man.json";
 
 interface Offer {
   id: number;
@@ -67,29 +69,39 @@ const Index = () => {
       {/* Hero section with simplified clean design */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
-              Fast Delivery • 15-45 Minutes
-            </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
-              Premium Drinks Delivered In Minutes
-            </h1>
-            <p className="text-lg md:text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-              From craft beers to fine wines, cocktails, spirits, and non-alcoholic options,
-              we've got your beverage needs covered with fast delivery.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/categories">
-                <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
-                  Browse Drinks
-                </Button>
-              </Link>
-              <Link to="/recipes">
-                <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10 font-medium">
-                  <Tag className="mr-2 h-5 w-5" />
-                  View Recipes
-                </Button>
-              </Link>
+          <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
+            <div className="text-center max-w-xl">
+              <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-4">
+                Fast Delivery • 15-45 Minutes
+              </Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
+                Premium Drinks Delivered In Minutes
+              </h1>
+              <p className="text-lg md:text-xl mb-8 text-white/90">
+                From craft beers to fine wines, cocktails, spirits, and non-alcoholic options,
+                we've got your beverage needs covered with fast delivery.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/categories">
+                  <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 font-medium">
+                    Browse Drinks
+                  </Button>
+                </Link>
+                <Link to="/recipes">
+                  <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10 font-medium">
+                    <Tag className="mr-2 h-5 w-5" />
+                    View Recipes
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="w-150 h-150 mt-10 md:mt-0">
+              <Lottie
+                animationData={devAnimation}
+                loop={true}
+                autoplay={true}
+                className="w-full h-full"
+              />
             </div>
           </div>
         </div>

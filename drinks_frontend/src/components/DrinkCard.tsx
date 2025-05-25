@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCart, DrinkItem } from '@/context/CartContext';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -37,7 +36,7 @@ const DrinkCard: React.FC<DrinkCardProps> = ({ drink }) => {
             <p className="text-sm text-muted-foreground">{drink.category}</p>
           </div>
           <div className="text-right">
-            <span className="font-bold text-lg">${drink.price}</span>
+            <span className="font-bold text-lg">KES {drink.price.toLocaleString('en-KE')}</span>
           </div>
         </div>
         <p className="mt-2 text-sm line-clamp-2">{drink.description}</p>

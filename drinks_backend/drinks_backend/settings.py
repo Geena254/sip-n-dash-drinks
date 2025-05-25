@@ -3,7 +3,6 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -14,7 +13,6 @@ SECRET_KEY = 'django-insecure-0=0np+mz7vohc3mb6s1y-@u88opqddbk$(^z^s@0-2&78(d+ry
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 AUTH_USER_MODEL = 'core.CustomUser'
 # Application definition
@@ -123,6 +121,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -156,6 +164,3 @@ MPESA_SHORTCODE= os.getenv("MPESA_SHORTCODE")
 MPESA_CONSUMER_SECRET= os.getenv("MPESA_CONSUMER_SECRET")
 MPESA_CONSUMER_KEY= os.getenv("MPESA_CONSUMER_KEY")
 MPESA_CALLBACK_URL= os.getenv("MPESA_CALLBACK_URL")
-
-PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')
-PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY')

@@ -1,6 +1,15 @@
 from rest_framework import serializers
 from .models import *
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib import admin
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('order_id', 'customer_name', 'order_total', 'payment_method', 'status', 'created_at')
+    readonly_fields = ('products',)
+
+    def customer_name(self, obj):
+        return obj.customer.name if obj.customer else "Unknown"
 
 # ================================
 # Authentication Token Serializer
@@ -79,20 +88,50 @@ class CocktailsSerializer(serializers.ModelSerializer):
 class CustomerInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerInfo
-        fields = '__all__'
+        fields = ['id', 'name', 'email', 'phone', 'county', 'delivery_area', 'latitude', 'longitude']
 
 
 class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerInfoSerializer()
+    items = serializers.SerializerMethodField()
+    # date = serializers.DateTimeField(source='created_at', format="%Y-%m-%d %H:%M")
+    delivery_area = serializers.CharField(source='customer.delivery_area', read_only=True)
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = [
+            'id',
+            'order_id',
+            'customer',
+            'items',
+            'status',
+            'order_total',
+            'payment_method',
+            'delivery_area',
+            'products',
+        ]
+        read_only_fields = ['id', 'customer', 'date', 'delivery_area', 'county', 'total']
+
+    def get_items(self, obj):
+        return obj.products
 
     def create(self, validated_data):
         customer_data = validated_data.pop('customer')
         customer = CustomerInfo.objects.create(**customer_data)
         return Order.objects.create(customer=customer, **validated_data)
+
+    def update(self, instance, validated_data):
+        # Allow PATCHing order status or payment
+        customer_data = validated_data.pop('customer', None)
+        if customer_data:
+            for attr, value in customer_data.items():
+                setattr(instance.customer, attr, value)
+            instance.customer.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 # ============================
 # Static Data Serializers

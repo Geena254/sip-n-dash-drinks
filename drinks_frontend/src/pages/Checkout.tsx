@@ -10,6 +10,7 @@ import { ShoppingBag, CreditCard, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 import { createOrder } from '@/service/apiService';
+import { useLocation } from 'react-router-dom';
 
 const Checkout: React.FC = () => {
   const { items, cartTotal, clearCart } = useCart();
@@ -28,10 +29,10 @@ const Checkout: React.FC = () => {
   });
 
   const deliveryAreas = [
-    { name: 'Mnarani', price: 1.50 },
-    { name: 'Bofa', price: 2.00 },
-    { name: 'Tezo', price: 2.50 },
-    { name: 'Mtondia', price: 3.00 },
+    { name: 'Mnarani', price: 150 },
+    { name: 'Bofa', price: 200 },
+    { name: 'Tezo', price: 250 },
+    { name: 'Mtondia', price: 300 },
   ];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +44,9 @@ const Checkout: React.FC = () => {
     cardExpiry: '',
     cardCVC: '',
   });
+
+  const { state } = useLocation();
+  const { orderNumber, deliveryTime, orderDate } = state || {};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -60,7 +64,7 @@ const Checkout: React.FC = () => {
 
   const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
   const deliveryFee = selectedArea ? selectedArea.price : 0;
-  const tax = cartTotal * 0.08;
+  const tax = cartTotal * 0.05;
   const total = cartTotal + deliveryFee + tax;
 
   const handleSubmit = async (e) => {
@@ -141,7 +145,7 @@ const Checkout: React.FC = () => {
           return acc;
         }, {}),
         status: 'initiated',
-        order_total: orderSummary.total,
+        order_total: Math.round(orderSummary.total),
         payment_method: selectedPayment
        }
 
@@ -150,7 +154,8 @@ const Checkout: React.FC = () => {
       navigate('/confirmation', {
         state: {
           orderNumber: data.order_id,
-          deliveryTime: '30-45 minutes'
+          deliveryTime: '30-45 minutes',
+          orderDate: data.date
         }
       });
     } catch (err: any) {
@@ -285,7 +290,7 @@ const Checkout: React.FC = () => {
                         <span className="font-medium">{item.name}</span>
                       </div>
                       <span className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ${(item.price * item.quantity)}
                       </span>
                     </div>
                   ))
@@ -299,19 +304,19 @@ const Checkout: React.FC = () => {
               <div className="border-t mt-6 pt-4 space-y-3">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span className="font-medium">${cartTotal.toFixed(2)}</span>
+                  <span className="font-medium">KES {cartTotal.toLocaleString('en-KE')}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Delivery Fee</span>
-                  <span className="font-medium">${deliveryFee.toFixed(2)}</span>
+                  <span className="font-medium">KES {deliveryFee.toLocaleString('en-KE')}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Tax</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
+                  <span className="font-medium">KES {tax.toLocaleString('en-KE')}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
                   <span>Total</span>
-                  <span className="text-primary">${total.toFixed(2)}</span>
+                  <span className="text-primary">KES {total.toLocaleString('en-KE')}</span>
                 </div>
               </div>
               <div className="border-t mt-6 pt-4 space-y-3">
@@ -326,7 +331,7 @@ const Checkout: React.FC = () => {
                   <option value="">Select area...</option>
                   {deliveryAreas.map(area => (
                     <option key={area.name} value={area.name}>
-                      {area.name} - ${area.price.toFixed(2)}
+                      {area.name} - KES {area.price.toLocaleString('en-KE')}
                     </option>
                   ))}
                 </select>
@@ -334,6 +339,7 @@ const Checkout: React.FC = () => {
               <div className="mt-6 bg-primary/5 p-4 rounded-md">
                 <p className="text-sm font-medium text-primary">Estimated Delivery Time</p>
                 <p className="text-sm text-muted-foreground">20-45 minutes from order time</p>
+                <p className="text-muted-foreground">Order date: <strong>{new Date(orderDate).toLocaleString('en-KE')}</strong></p>
               </div>
             </CardContent>
           </Card>
