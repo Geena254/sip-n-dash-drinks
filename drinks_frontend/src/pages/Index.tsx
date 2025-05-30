@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getDrinkCategories, getDrinks, getOffers } from '@/service/apiService';
 import Lottie from "lottie-react";
-import devAnimation from "../../public/images/delivery man.json";
+import devAnimation from "../images/delivery man.json";
 
 interface Offer {
   id: number;

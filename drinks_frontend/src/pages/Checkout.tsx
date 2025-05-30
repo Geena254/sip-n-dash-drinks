@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,22 +10,35 @@ import { ShoppingBag, CreditCard, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import axios from 'axios';
 import { createOrder } from '@/service/apiService';
-import { useLocation } from 'react-router-dom';
 
 const Checkout: React.FC = () => {
   const { items, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { state } = useLocation();
+  const { orderNumber, deliveryTime, orderDate } = state || {};
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
     address: '',
     latitude: 0,
     longitude: 0,
     payment_method: '',
-    deliveryArea: ''
+    deliveryArea: '',
+    addressInputType: 'picker' // 'picker' or 'manual'
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState({
+    mpesaNumber: '',
+    mpesaTillNumber: '',
+    mpesaStoreNumber: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCVC: '',
   });
 
   const deliveryAreas = [
@@ -34,19 +47,6 @@ const Checkout: React.FC = () => {
     { name: 'Tezo', price: 250 },
     { name: 'Mtondia', price: 300 },
   ];
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState({
-    mpesaNumber: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCVC: '',
-  });
-
-  const { state } = useLocation();
-  const { orderNumber, deliveryTime, orderDate } = state || {};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -62,33 +62,53 @@ const Checkout: React.FC = () => {
     }));
   };
 
+  const sendWhatsAppNotification = async (to: string, message: string) => {
+    try {
+      const response = await axios.post('/api/whatsapp', {
+        to: `whatsapp:+${to}`,
+        message
+      });
+      console.log('WhatsApp notification sent:', response.data);
+    } catch (error) {
+      console.error('Failed to send WhatsApp notification:', error);
+    }
+  };
+
+  const sendEmailNotification = async (to: string, subject: string, body: string) => {
+    try {
+      const response = await axios.post('/api/email', {
+        to,
+        subject,
+        body
+      });
+      console.log('Email notification sent:', response.data);
+    } catch (error) {
+      console.error('Failed to send email notification:', error);
+    }
+  };
+
   const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
   const deliveryFee = selectedArea ? selectedArea.price : 0;
   const tax = cartTotal * 0.05;
   const total = cartTotal + deliveryFee + tax;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     const phoneRegex = /^07\d{8}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!phoneRegex.test(formData.phone)) {
-      toast({ title: "Invalid phone number", description: "Use format: 07XXXXXXXX", variant: "destructive" });
+      toast({
+        title: "Invalid phone number",
+        description: "Use format: 07XXXXXXXX",
+        variant: "destructive"
+      });
       setIsSubmitting(false);
       return;
     }
 
-    if (!emailRegex.test(formData.email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address", variant: "destructive" });
-      setIsSubmitting(false);
-      return;
-    }
-
-    const requiredFields = ['name', 'email', 'phone', 'address'];
+    const requiredFields = ['name', 'phone', 'address', 'deliveryArea'];
     const emptyFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-
     if (emptyFields.length > 0) {
       toast({
         title: "Please fill in all fields",
@@ -109,9 +129,7 @@ const Checkout: React.FC = () => {
       return;
     }
 
-    console.log(formData);
     try {
-      // Create order summary object
       const orderSummary = {
         subtotal: cartTotal,
         deliveryFee,
@@ -134,28 +152,53 @@ const Checkout: React.FC = () => {
           name: formData.name,
           latitude: formData.latitude,
           longitude: formData.longitude,
-          email: formData.email,
           phone: formData.phone,
           delivery_area: formData.deliveryArea,
         },
         products: items.reduce((acc, item) => {
-          acc[item.name] = {
-            quantity: item.quantity
-          };
+          acc[item.name] = { quantity: item.quantity };
           return acc;
         }, {}),
         status: 'initiated',
         order_total: Math.round(orderSummary.total),
         payment_method: selectedPayment
-       }
+      };
 
       const res = await createOrder(orderData);
-      const data = res;
+      const orderId = res.order_id;
+
+      // Send customer WhatsApp confirmation
+      await sendWhatsAppNotification(
+        formData.phone,
+        `Order #${orderId} confirmed! Total: KES ${total.toLocaleString('en-KE')}. Estimated delivery in 30-45 minutes.`
+      );
+
+      // Send seller notification (WhatsApp and Email)
+      const sellerMessage = `New Order #${orderId}\nCustomer: ${formData.name}\nPhone: ${formData.phone}\nAddress: ${formData.address}\nArea: ${formData.deliveryArea}\nItems:\n${items.map(item => `${item.name} x${item.quantity} - KES ${item.price * item.quantity}`).join('\n')}\nTotal: KES ${total.toLocaleString('en-KE')}\nPayment: ${selectedPayment}`;
+      await sendWhatsAppNotification(
+        process.env.SELLER_PHONE,
+        sellerMessage
+      );
+      await sendEmailNotification(
+        process.env.SELLER_EMAIL,
+        `New Order #${orderId}`,
+        sellerMessage.replace('\n', '<br>')
+      );
+
+      // Schedule arrival notification
+      setTimeout(async () => {
+        await sendWhatsAppNotification(
+          formData.phone,
+          `Order #${orderId} has arrived! Thank you for your purchase.`
+        );
+      }, 5 * 60 * 1000); // 5 minutes later
+
+      clearCart();
       navigate('/confirmation', {
         state: {
-          orderNumber: data.order_id,
+          orderNumber: orderId,
           deliveryTime: '30-45 minutes',
-          orderDate: data.date
+          orderDate: res.date
         }
       });
     } catch (err: any) {
@@ -181,56 +224,70 @@ const Checkout: React.FC = () => {
                 <span>Delivery Information</span>
               </CardTitle>
             </CardHeader>
-
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="John Doe"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="transition-all focus-within:border-primary"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="transition-all focus-within:border-primary"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="transition-all focus-within:border-primary"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
                     name="phone"
-                    placeholder="(555) 123-4567"
+                    placeholder="07XXXXXXXX"
                     value={formData.phone}
                     onChange={handleChange}
                     className="transition-all focus-within:border-primary"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="address">Delivery Location</Label>
-                  <LocationPicker
-                    onLocationSelect={handleLocationSelect}
-                    initialAddress={formData.address}
-                  />
+                  <Label>Address Input Method</Label>
+                  <div className="flex gap-4">
+                    <Button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, addressInputType: 'picker' }))}
+                      className={formData.addressInputType === 'picker' ? 'bg-primary text-white' : 'bg-gray-200'}
+                    >
+                      Use Location Picker
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, addressInputType: 'manual' }))}
+                      className={formData.addressInputType === 'manual' ? 'bg-primary text-white' : 'bg-gray-200'}
+                    >
+                      Enter Manually
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Delivery Address</Label>
+                  {formData.addressInputType === 'picker' ? (
+                    <LocationPicker
+                      onLocationSelect={handleLocationSelect}
+                      initialAddress={formData.address}
+                    />
+                  ) : (
+                    <Input
+                      id="address"
+                      name="address"
+                      placeholder="Enter full address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="transition-all focus-within:border-primary"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 flex-wrap">
                     {[
                       { type: 'mpesa', label: 'MPESA', icon: '/icons/mpesa.png' },
                       { type: 'card', label: 'Card', icon: '/icons/card.png' },
@@ -243,9 +300,7 @@ const Checkout: React.FC = () => {
                           setSelectedPayment(type);
                           if (type !== 'cash') setShowPaymentModal(true);
                         }}
-                        className={`p-3 border rounded-lg flex flex-col items-center justify-center w-24 transition-all ${
-                          selectedPayment === type ? 'border-primary bg-primary/10' : 'border-gray-200'
-                        }`}
+                        className={`p-3 border rounded-lg flex flex-col items-center justify-center w-24 transition-all ${selectedPayment === type ? 'border-primary bg-primary/10' : 'border-gray-200'}`}
                       >
                         <img src={icon} alt={label} className="w-6 h-6 mb-1" />
                         <span className="text-sm">{label}</span>
@@ -253,7 +308,6 @@ const Checkout: React.FC = () => {
                     ))}
                   </div>
                 </div>
-
                 <div className="pt-4">
                   <Button
                     type="submit"
@@ -271,13 +325,11 @@ const Checkout: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-
         <div className="md:col-span-1">
           <Card className="sticky top-20 overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
               <CardTitle className="text-xl">Order Summary</CardTitle>
             </CardHeader>
-
             <CardContent className="p-6">
               <div className="space-y-4">
                 {items.length > 0 ? (
@@ -290,7 +342,7 @@ const Checkout: React.FC = () => {
                         <span className="font-medium">{item.name}</span>
                       </div>
                       <span className="font-medium">
-                        ${(item.price * item.quantity)}
+                        KES {(item.price * item.quantity).toLocaleString('en-KE')}
                       </span>
                     </div>
                   ))
@@ -300,7 +352,6 @@ const Checkout: React.FC = () => {
                   </div>
                 )}
               </div>
-
               <div className="border-t mt-6 pt-4 space-y-3">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
@@ -320,7 +371,7 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
               <div className="border-t mt-6 pt-4 space-y-3">
-              <Label htmlFor="deliveryArea">Select Delivery Area</Label>
+                <Label htmlFor="deliveryArea">Select Delivery Area</Label>
                 <select
                   id="deliveryArea"
                   name="deliveryArea"
@@ -339,7 +390,7 @@ const Checkout: React.FC = () => {
               <div className="mt-6 bg-primary/5 p-4 rounded-md">
                 <p className="text-sm font-medium text-primary">Estimated Delivery Time</p>
                 <p className="text-sm text-muted-foreground">20-45 minutes from order time</p>
-                <p className="text-muted-foreground">Order date: <strong>{new Date(orderDate).toLocaleString('en-KE')}</strong></p>
+                <p className="text-muted-foreground">Order date: <strong>{orderDate ? new Date(orderDate).toLocaleString('en-KE') : 'N/A'}</strong></p>
               </div>
             </CardContent>
           </Card>
@@ -356,15 +407,25 @@ const Checkout: React.FC = () => {
             </button>
             <h2 className="text-lg font-semibold mb-4">Enter {selectedPayment === 'mpesa' ? 'MPESA' : 'Card'} Details</h2>
             {selectedPayment === 'mpesa' && (
-              <div className="space-y-2">
-                <Label htmlFor="mpesaNumber">MPESA Number</Label>
-                <Input
-                  id="mpesaNumber"
-                  name="mpesaNumber"
-                  placeholder="07XXXXXXXX"
-                  value={paymentDetails.mpesaNumber}
-                  onChange={e => setPaymentDetails(prev => ({ ...prev, mpesaNumber: e.target.value }))}
-                />
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="mpesaTillNumber">Till Number: </Label>
+                  3547836
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mpesaStoreNumber">Store Number: </Label>
+                  5950470
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mpesaNumber">MPESA Number:</Label>
+                  <Input
+                    id="mpesaNumber"
+                    name="mpesaNumber"
+                    placeholder="07XXXXXXXX"
+                    value={paymentDetails.mpesaNumber}
+                    onChange={e => setPaymentDetails(prev => ({ ...prev, mpesaNumber: e.target.value }))}
+                  />
+                </div>
               </div>
             )}
             {selectedPayment === 'card' && (
@@ -403,12 +464,11 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
             )}
-
             <div className="mt-4">
               <Button
                 className="w-full"
                 onClick={() => {
-                  if (selectedPayment === 'mpesa' && !paymentDetails.mpesaNumber) return;
+                  if (selectedPayment === 'mpesa' && (!paymentDetails.mpesaNumber || !paymentDetails.mpesaTillNumber || !paymentDetails.mpesaStoreNumber)) return;
                   if (selectedPayment === 'card' && (!paymentDetails.cardNumber || !paymentDetails.cardExpiry || !paymentDetails.cardCVC)) return;
                   setShowPaymentModal(false);
                 }}
@@ -422,4 +482,5 @@ const Checkout: React.FC = () => {
     </div>
   );
 };
+
 export default Checkout;
