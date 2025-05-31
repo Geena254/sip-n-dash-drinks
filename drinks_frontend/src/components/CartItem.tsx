@@ -10,9 +10,10 @@ interface CartItemProps {
   price: number;
   image: string;
   quantity: number;
+  options: string[];
 }
 
-const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity }) => {
+const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, options }) => {
   const { updateQuantity, removeFromCart } = useCart();
 
   return (

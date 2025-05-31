@@ -19,6 +19,7 @@ export interface DrinkItem {
 }
 
 interface CartItem extends Drink {
+  options: any;
   quantity: number;
 }
 
@@ -77,10 +78,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-
-      return [...prevItems, { ...item, quantity: 1 }];
-    });
-  };
+      return [...prevItems, { ...item, quantity: 1, options: [] }];
+    });  };
 
   const removeFromCart = (id: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));

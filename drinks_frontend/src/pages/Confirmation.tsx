@@ -4,14 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 
-interface LocationState {
-  orderNumber?: string;
-  deliveryTime?: string;
-}
 
 const Confirmation: React.FC = () => {
-  const location = useLocation();
-  const state = location.state as LocationState;
+  const { state } = useLocation();
   
   // If accessed directly without state, redirect to home
   if (!state?.orderNumber) {
@@ -27,9 +22,7 @@ const Confirmation: React.FC = () => {
           </div>
           
           <h1 className="text-2xl font-bold mb-2">Order Confirmed!</h1>
-          <p className="text-muted-foreground mb-6">
-            Your drinks are on the way
-          </p>
+          <p>Thank you, {state?.customer?.name}! Your order #{state?.orderNumber} is confirmed.</p>
           
           <div className="bg-muted p-4 rounded-lg mb-6">
             <div className="grid grid-cols-2 gap-4 text-sm">
