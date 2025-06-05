@@ -3,7 +3,13 @@ import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
+
+declare global {
+  interface Window {
+    html2pdf: any;
+  }
+}
+
 
 const Confirmation: React.FC = () => {
   const { state } = useLocation();
@@ -12,16 +18,17 @@ const Confirmation: React.FC = () => {
   const orderRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadPDF = () => {
-    if (!orderRef.current) return;
+    if (!orderRef.current || !window.html2pdf) return;
 
-    html2pdf()
-      .set({ margin: 0.5, filename: `Order_${state.orderId}.pdf` })
+    window.html2pdf()
+      .set({
+        margin: 0.5,
+        filename: `Order_${state.orderId}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      })
       .from(orderRef.current)
       .save();
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   // Check if emails were sent successfully
@@ -96,7 +103,7 @@ const Confirmation: React.FC = () => {
               </Button>
             </Link>
             <div className="flex justify-between mt-4 gap-2">
-              <Button onClick={handlePrint} variant="outline">Print</Button>
+              <Button variant="outline" onClick={() => window.print()}>Print</Button>
               <Button onClick={handleDownloadPDF} className="bg-primary text-white">Download PDF</Button>
             </div>
           </div>
