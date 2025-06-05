@@ -1,4 +1,4 @@
-@import 'tailwind/base';
+@tailwind/base;
 @import 'tailwind/components';
 @import 'tailwind/utilities';
 
