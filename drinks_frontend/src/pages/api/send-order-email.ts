@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Resend } from 'resend';
+import { buildCustomerEmailTemplate } from '../../utils/buildEmailTemplate';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -20,12 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const response = await resend.emails.send({
-      from: 'Barrush Delivery <noreply@barrush.onresend.com>', // or your verified sender domain
+      from: 'Barrush Delivery <noreply@barrushdelivery.co.ke>', // or your verified sender domain
       to: toEmail,
       subject: emailType === 'business'
         ? `📦 New Order #${orderData.orderId}`
         : `✅ Order Confirmation #${orderData.orderId}`,
-      html: buildEmailTemplate(orderData, emailType === 'business'),
+      html: emailType === 'business'
+        ? buildEmailTemplate(orderData, emailType == 'business')
+        : buildCustomerEmailTemplate(orderData),
     });
 
     return res.status(200).json({ success: true, response });

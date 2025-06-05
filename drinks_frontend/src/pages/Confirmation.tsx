@@ -1,26 +1,44 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 const Confirmation: React.FC = () => {
   const { state } = useLocation();
-  const [emailConfirmed, setEmailConfirmed] = React.useState(false);
+  const [emailStatus, setEmailStatus] = useState<'pending' | 'failed' | 'success'>('pending');
+  
+  const orderRef = useRef<HTMLDivElement>(null);
 
+  const handleDownloadPDF = () => {
+    if (!orderRef.current) return;
+
+    html2pdf()
+      .set({ margin: 0.5, filename: `Order_${state.orderId}.pdf` })
+      .from(orderRef.current)
+      .save();
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Check if emails were sent successfully
   useEffect(() => {
-    // Check if emails were sent successfully
-    const checkEmailStatus = async () => {
-      if (!state?.emailSent) {
-        const res = await fetch('/api/check-email-status?orderId=' + state.orderId);
-        if (!res.ok) {
-          console.error('Failed to check email status');
-          return;
-        }
-        setEmailConfirmed(true);
+    const confirmEmailSent = async () => {
+      // Optionally check backend, or just simulate:
+      if (!state?.customerEmail) return;
+
+      const res = await fetch('/api/send-order-email-status?orderId=' + state.orderId); // optional future improvement
+      if (!res.ok) {
+        setEmailStatus('failed');
+      } else {
+        setEmailStatus('success');
       }
     };
-    checkEmailStatus();
+
+    confirmEmailSent();
   }, []);
 
   // If accessed directly without state, redirect to home
@@ -28,10 +46,6 @@ const Confirmation: React.FC = () => {
     return <Navigate to="/" replace />;
   }
   
-  function handleResendEmail(event: React.MouseEvent<HTMLButtonElement>): void {
-    event.preventDefault();
-    setEmailConfirmed(true);
-  }
   return (
     <div className="max-w-md mx-auto p-4">
       <Card className="border-0 shadow-lg">
@@ -61,19 +75,19 @@ const Confirmation: React.FC = () => {
               We've sent a confirmation text with your order details.
             </p>
 
-            {
-              !emailConfirmed && (
-                <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">
-                  <p>Emails may take a few minutes to arrive.</p>
-                  <button 
-                    onClick={handleResendEmail}
-                    className="mt-2 text-sm text-yellow-700 underline"
-                  >
-                    Didn't receive email? Resend
-                  </button>
-                </div>
-              )
-            }
+            {emailStatus === 'failed' && (
+              <div className="bg-yellow-100 p-4 rounded mb-4 text-yellow-700 text-sm">
+                We couldn’t confirm your email was delivered. Here’s a copy of your order:
+                <ul className="mt-2 list-disc list-inside">
+                  {state?.items?.map((item: any) => (
+                    <li key={item.name}>
+                      {item.quantity}x {item.name} – KES {(item.price * item.quantity).toLocaleString('en-KE')}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2">Total: <strong>KES {state?.total?.toLocaleString('en-KE')}</strong></p>
+              </div>
+            )}
             
             <Link to="/">
               <Button className="w-full gap-2">
@@ -81,6 +95,10 @@ const Confirmation: React.FC = () => {
                 Return to Home
               </Button>
             </Link>
+            <div className="flex justify-between mt-4 gap-2">
+              <Button onClick={handlePrint} variant="outline">Print</Button>
+              <Button onClick={handleDownloadPDF} className="bg-primary text-white">Download PDF</Button>
+            </div>
           </div>
         </CardContent>
       </Card>
