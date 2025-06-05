@@ -1,7 +1,5 @@
-import { useCallback } from 'react';
-
 export const useEmailService = () => {
-  const sendOrderEmail = useCallback(async (emailType: 'business' | 'customer', orderData: any) => {
+  const sendOrderEmail = async (emailType: 'business' | 'customer', orderData: any) => {
     try {
       const response = await fetch('/api/send-order-email', {
         method: 'POST',
@@ -9,16 +7,13 @@ export const useEmailService = () => {
         body: JSON.stringify({ emailType, orderData }),
       });
 
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
+      if (!response.ok) throw new Error(await response.text());
       return true;
-    } catch (error) {
-      console.error('Email error:', error);
+    } catch (err) {
+      console.error('Email send failed:', err);
       return false;
     }
-  }, []);
+  };
 
   return { sendOrderEmail };
 };

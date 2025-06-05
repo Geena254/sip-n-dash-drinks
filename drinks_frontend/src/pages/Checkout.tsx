@@ -128,63 +128,70 @@ const Checkout: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // Client-side order processing
-    const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
-    const deliveryFee = selectedArea?.price || 0;
-    const tax = cartTotal * 0.05;
-    const total = cartTotal + deliveryFee + tax;
-
-    // Generate order ID locally
-    const orderId = `ORDER-${Date.now().toString().slice(-6)}`;
-    const orderDate = new Date().toLocaleString('en-KE');
-
-    // Prepare order confirmation data
-    const orderData = {
-      orderId,
-      customerName: formData.name,
-      customerPhone: formData.phone,
-      customerEmail: formData.email,
-      deliveryAddress: formData.address,
-      deliveryArea: formData.deliveryArea,
-      items: items.map(item => ({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        options: item.options || null, // Handle undefined options
-      })),
-      subtotal: cartTotal,
-      deliveryFee: deliveryFee,
-      tax: tax,
-      total: total,
-      paymentMethod: selectedPayment || 'Cash on Delivery',
-      deliveryTime: selectedArea?.deliveryTime || '30-45 minutes'
-    };
-
     try {
-      // Send business notification
-      await sendOrderEmail('business', orderData);
+      // Client-side order processing
+      const selectedArea = deliveryAreas.find(area => area.name === formData.deliveryArea);
+      const deliveryFee = selectedArea?.price || 0;
+      const tax = cartTotal * 0.05;
+      const total = cartTotal + deliveryFee + tax;
 
-      // Send customer confirmation if email exists
-      if (formData.email) {
-        await sendOrderEmail('customer', orderData);
-      }
-      // Store order in localStorage (for demo purposes)
+      // Generate order ID locally
+      const orderId = `ORDER-${Date.now().toString().slice(-6)}`;
+      const orderDate = new Date().toLocaleString('en-KE');
+
+      // Prepare order confirmation data
+      const orderData = {
+        orderId,
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        customerEmail: formData.email,
+        deliveryAddress: formData.address,
+        deliveryArea: formData.deliveryArea,
+        items: items.map(item => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          options: item.options || null,
+        })),
+        subtotal: cartTotal,
+        deliveryFee,
+        tax,
+        total,
+        paymentMethod: selectedPayment || 'Cash on Delivery',
+        deliveryTime: selectedArea?.deliveryTime || '30-45 minutes'
+      };
+
+      // Store order first to ensure data is saved
       const pastOrders = JSON.parse(localStorage.getItem('pastOrders') || '[]');
       localStorage.setItem('pastOrders', JSON.stringify([...pastOrders, orderData]));
+
+      // Attempt to send emails (but don't block navigation if they fail)
+      try {
+        await Promise.all([
+          sendOrderEmail('business', orderData),
+          formData.email && sendOrderEmail('customer', orderData)
+        ]);
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+      }
+
+      // orderData.emailSent = true;
 
       // Clear cart and form data
       clearCart();
       localStorage.removeItem('checkoutFormData');
 
-      // Navigate to confirmation
+      // Navigate only after all state updates are complete
       navigate('/confirmation', {
-        state: orderData
+        state: orderData,
+        replace: true
       });
 
     } catch (error) {
+      console.error('Checkout error:', error);
       toast({
-        title: "Order placed but email failed",
-        description: "Check your email for confirmation. If you don't receive it, please contact us.",
+        title: "Order failed",
+        description: "There was an error processing your order. Please try again.",
         variant: "destructive"
       });
     } finally {

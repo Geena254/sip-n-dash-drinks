@@ -14,7 +14,7 @@ const Cart: React.FC = () => {
       <div className="flex flex-col items-center justify-center py-12">
         <h2 className="text-xl font-semibold mb-4">Your cart is empty</h2>
         <p className="mb-6 text-muted-foreground">Add some drinks to get started!</p>
-        <Link to="/">
+        <Link to="/categories">
           <Button>Browse Drinks</Button>
         </Link>
       </div>
@@ -39,7 +39,8 @@ const Cart: React.FC = () => {
               name={item.name} 
               price={item.price} 
               image={item.image} 
-              quantity={item.quantity} 
+              quantity={item.quantity}
+              options={item.options}
             />
           ))}
         </div>

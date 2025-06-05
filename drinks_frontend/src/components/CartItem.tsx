@@ -25,7 +25,7 @@ const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, o
       <div className="ml-4 flex-1">
         <h3 className="font-medium">{name}</h3>
         <div className="flex justify-between items-center mt-2">
-          <span className="font-bold">${price}</span>
+          <span className="font-bold">KES {price}</span>
 
           <div className="flex items-center">
             <Button
