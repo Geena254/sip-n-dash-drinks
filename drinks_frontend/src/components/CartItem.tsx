@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ interface CartItemProps {
   price: number;
   image: string;
   quantity: number;
-  options: string[];
+  options?: string | null;
 }
 
 const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, options }) => {
@@ -25,7 +24,7 @@ const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, o
       <div className="ml-4 flex-1">
         <h3 className="font-medium">{name}</h3>
         <div className="flex justify-between items-center mt-2">
-          <span className="font-bold">KES {price}</span>
+          <span className="font-bold">KES {price.toLocaleString('en-KE')}</span>
 
           <div className="flex items-center">
             <Button

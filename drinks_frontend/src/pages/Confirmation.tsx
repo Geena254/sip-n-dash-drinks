@@ -1,37 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 
-declare global {
-  interface Window {
-    html2pdf: any;
-  }
-}
-
-
 const Confirmation: React.FC = () => {
   const { state } = useLocation();
   const [emailStatus, setEmailStatus] = useState<'pending' | 'failed' | 'success'>('pending');
-  
-  const orderRef = useRef<HTMLDivElement>(null);
 
-  const handleDownloadPDF = () => {
-    if (!orderRef.current || !window.html2pdf) return;
-
-    window.html2pdf()
-      .set({
-        margin: 0.5,
-        filename: `Order_${state.orderId}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      })
-      .from(orderRef.current)
-      .save();
-  };
-
-  // Check if emails were sent successfully
   useEffect(() => {
     const confirmEmailSent = async () => {
       // Optionally check backend, or just simulate:
@@ -47,13 +23,11 @@ const Confirmation: React.FC = () => {
 
     confirmEmailSent();
   }, []);
-
-  // If accessed directly without state, redirect to home
-  if (!state?.orderId) {
-    return <Navigate to="/" replace />;
-  }
   
-  return (
+  // If accessed directly without state, redirect to home
+  if (!state?.orderId) return <Navigate to="/" replace />;
+  
+   return (
     <div className="max-w-md mx-auto p-4">
       <Card className="border-0 shadow-lg">
         <CardContent className="pt-6 text-center">
@@ -62,13 +36,13 @@ const Confirmation: React.FC = () => {
           </div>
           
           <h1 className="text-2xl font-bold mb-2">Order Confirmed!</h1>
-          <p>Thank you, {state.customerName}! Your order #{state.orderId} is confirmed.</p>
+          <p>Thank you, {state?.customerName}! Your order #{state?.orderId} is confirmed.</p>
           
           <div className="bg-muted p-4 rounded-lg mb-6">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Order Number:</p>
-                <p className="font-medium">{state.orderId}</p>
+                <p className="font-medium">{state?.orderId}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Estimated Time:</p>
@@ -102,10 +76,6 @@ const Confirmation: React.FC = () => {
                 Return to Home
               </Button>
             </Link>
-            <div className="flex justify-between mt-4 gap-2">
-              <Button variant="outline" onClick={() => window.print()}>Print</Button>
-              <Button onClick={handleDownloadPDF} className="bg-primary text-white">Download PDF</Button>
-            </div>
           </div>
         </CardContent>
       </Card>

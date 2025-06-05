@@ -97,7 +97,7 @@ const Checkout: React.FC = () => {
       return false;
     }
 
-    const requiredFields = ['name', 'phone', 'address', 'deliveryArea'];
+    const requiredFields = ['name', 'phone', 'email', 'address', 'deliveryArea'];
     const emptyFields = requiredFields.filter(field => !formData[field]);
     if (emptyFields.length > 0) {
       toast({
@@ -175,8 +175,6 @@ const Checkout: React.FC = () => {
         console.error('Email sending failed:', emailError);
       }
 
-      // orderData.emailSent = true;
-
       // Clear cart and form data
       clearCart();
       localStorage.removeItem('checkoutFormData');
@@ -246,7 +244,7 @@ const Checkout: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email (Optional)</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   name="email"

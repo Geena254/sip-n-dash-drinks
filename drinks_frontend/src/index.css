@@ -1,6 +1,7 @@
-@tailwind/base;
-@import 'tailwind/components';
-@import 'tailwind/utilities';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
@@ -84,43 +85,20 @@
   }
 }
 
-@media print {
-  body {
-    background: white !important;
-  }
-  .no-print {
-    display: none !important;
-  }
-}
-
 @layer base {
   * {
-    border-color: var(--border);
+    @apply border-border;
   }
   body {
-    background-color: var(--background);
-    color: var(--foreground);
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   .drink-card-container {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.5rem;
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
   }
 }
 
-@media (min-width: 768px) {
-  .drink-card-container {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .drink-card-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
 @keyframes slideIn {
   from {
     transform: translateY(20px);
@@ -207,10 +185,9 @@ button, .card, .input, .badge {
 }
 
 .barrush-gradient-text {
-  background: linear-gradient(to right, var(--barlogo-pink), var(--barlogo-blue));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;}
+  @apply bg-gradient-to-r from-barlogo-pink to-barlogo-blue bg-clip-text text-transparent;
+}
 
 .barrush-gradient-bg {
-  background: linear-gradient(to right, var(--barlogo-pink), var(--barlogo-blue));}
+  @apply bg-gradient-to-r from-barlogo-pink to-barlogo-blue;
+}

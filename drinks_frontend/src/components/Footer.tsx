@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
                 <ul className="space-y-2">
                 <li><Link to='/categories'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Shop</a></Link></li>
                 <li><Link to='/recipes'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Cocktail Recipes</a></Link></li>
-                <li><Link to='/checkout'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Order Now</a></Link></li>
+                <li><Link to='/categories'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Categories</a></Link></li>
                 <li><Link to='/cart'><a href="#" className="text-gray-600 hover:text-purple-700 transition-colors">Cart</a></Link></li>
                 </ul>
             </div>
@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
                 <ul className="space-y-3">
                 <li className="flex items-center">
                     <FaEnvelope className="mr-2 text-purple-500" />
-                    <a href="mailto:info@barrush.com" className="text-gray-600 hover:text-purple-700 transition-colors">barrushdelivery@gmail.com</a>
+                    <a href="mailto:info@barrush.com" className="text-gray-600 hover:text-purple-700 transition-colors">info@boozetoyou.com</a>
                 </li>
                 <li className="flex items-center">
                     <FaPhone className="mr-2 text-purple-500" />
