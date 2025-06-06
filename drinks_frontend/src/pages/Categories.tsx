@@ -17,8 +17,6 @@ type Drink = {
   image: string;
 };
 
-const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
 const Categories: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
