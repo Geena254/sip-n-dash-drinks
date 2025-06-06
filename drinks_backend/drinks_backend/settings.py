@@ -4,14 +4,20 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'insecure-default-key')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'https://drinks-backend-r99k.onrender.com',
-    'https://barrush-backend.onrender.com'
+    'drinks-backend-r99k.onrender.com',
+    'barrush-backend.onrender.com',
+    'localhost'
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ['https://drinks-backend-r99k.onrender.com', 'https://barrush-backend.onrender.com']
 
 AUTH_USER_MODEL = 'core.CustomUser'
 # Application definition
