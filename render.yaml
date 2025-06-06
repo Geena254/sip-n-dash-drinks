@@ -6,7 +6,7 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: pip install gunicorn && gunicorn your_project.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: pip install gunicorn && gunicorn drinks_backend.wsgi:application --bind 0.0.0.0:$PORT
     autoDeploy: true
     branch: main
     rootDir: drinks_backend
