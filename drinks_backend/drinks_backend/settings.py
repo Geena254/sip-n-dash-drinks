@@ -7,15 +7,18 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'insecure-default-key')
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'https://drinks-backend-r99k.onrender.com',
+    'https://barrush-backend.onrender.com'
+]
 
 AUTH_USER_MODEL = 'core.CustomUser'
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'drf_yasg',
     'core',
-    'corsheaders',
     'rest_framework',
     'django_filters',
     'drinks_backend',
@@ -29,6 +32,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -38,7 +42,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://barrush.netlify.app",
+    "https://barrush.co.ke",
+    "http://localhost:8080",
+    "http://localhost:3000"
+]
 
 ROOT_URLCONF = 'drinks_backend.urls'
 
