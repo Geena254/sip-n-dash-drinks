@@ -1,10 +1,15 @@
+# This is a Render YAML configuration file for deploying a Django backend
 services:
   - type: web
-    name: drinks_backend
+    name: drinks-backend
     env: python
+    region: oregon
+    plan: free
     buildCommand: ""
     startCommand: gunicorn drinks_backend.wsgi:application
     autoDeploy: true
+    branch: main
+    rootDir: drinks_backend
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: drinks_backend.settings
@@ -12,6 +17,3 @@ services:
         value: your-secret-key
       - key: DEBUG
         value: false
-      - fromDatabase:
-          name: your-db-name
-          property: connectionString
