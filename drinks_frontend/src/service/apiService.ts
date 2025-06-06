@@ -1,5 +1,5 @@
 // services/apiService.ts
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+const API_URL = 'https://barrush-backend.onrender.com/api';
 
 let accessToken: string | null = null;
 
@@ -13,21 +13,18 @@ const getAuthHeaders = () => ({
   ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
 });
 
-const fetchAPI = async (
-  endpoint: string,
-  method: string = 'GET',
-  body?: any,
-  isFormData = false
-) => {
-  const headers = isFormData
-    ? { ...(accessToken && { Authorization: `Bearer ${accessToken}` }) }
-    : getAuthHeaders();
-
-  const res = await fetch(`${API_URL}${endpoint}`, {
+const fetchAPI = async (endpoint, method = 'GET', body, isFormData = false) => {
+  const config = {
     method,
-    headers,
-    ...(body && (isFormData ? { body } : { body: JSON.stringify(body) })),
-  });
+    headers: getAuthHeaders(),
+  };
+
+  if (body) {
+    config.body = isFormData ? body : JSON.stringify(body);
+    if (isFormData) delete config.headers['Content-Type']; // Let browser set FormData headers
+  }
+
+  const res = await fetch(`${API_URL}${endpoint}`, config);
 
   if (!res.ok) {
     const error = await res.text();
@@ -35,6 +32,15 @@ const fetchAPI = async (
   }
 
   return res.status !== 204 ? await res.json() : null;
+};
+
+const fetchWithTimeout = (url, options, timeout = 8000) => {
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), timeout)
+    )
+  ]);
 };
 
 // ========== AUTH ==========
