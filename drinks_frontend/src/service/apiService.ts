@@ -13,18 +13,21 @@ const getAuthHeaders = () => ({
   ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
 });
 
-const fetchAPI = async (endpoint, method = 'GET', body, isFormData = false) => {
-  const config = {
+const fetchAPI = async (
+  endpoint: string,
+  method: string = 'GET',
+  body?: any,
+  isFormData = false
+) => {
+  const headers = isFormData
+    ? { ...(accessToken && { Authorization: `Bearer ${accessToken}` }) }
+    : getAuthHeaders();
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
     method,
-    headers: getAuthHeaders(),
-  };
-
-  if (body) {
-    config.body = isFormData ? body : JSON.stringify(body);
-    if (isFormData) delete config.headers['Content-Type']; // Let browser set FormData headers
-  }
-
-  const res = await fetch(`${API_URL}${endpoint}`, config);
+    headers,
+    ...(body && (isFormData ? { body } : { body: JSON.stringify(body) })),
+  });
 
   if (!res.ok) {
     const error = await res.text();
