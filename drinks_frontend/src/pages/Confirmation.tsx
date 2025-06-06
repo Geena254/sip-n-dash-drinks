@@ -53,7 +53,7 @@ const Confirmation: React.FC = () => {
           
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              We've sent a confirmation text with your order details.
+              We've sent a confirmation email with your order details.
             </p>
 
             {emailStatus === 'failed' && (

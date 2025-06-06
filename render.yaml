@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: drinks_backend
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn drinks_backend.wsgi:application
+    autoDeploy: true
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: drinks_backend.settings
+      - key: SECRET_KEY
+        value: your-secret-key
+      - key: DEBUG
+        value: false
+      - fromDatabase:
+          name: your-db-name
+          property: connectionString
