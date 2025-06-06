@@ -21,10 +21,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = ['https://drinks-backend-r99k.onrender.com', 'https://barrush-backend.onrender.com']
+CSP_SCRIPT_SRC = ("'self'", "https://barrush-backend.onrender.com")
 
 AUTH_USER_MODEL = 'core.CustomUser'
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
@@ -53,8 +54,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://barrush.netlify.app",
-    "https://barrush.co.ke",
+    "https://barrush.netlify.app/",
+    "https://barrush.co.ke/",
     "http://localhost:8080",
     "http://localhost:3000"
 ]

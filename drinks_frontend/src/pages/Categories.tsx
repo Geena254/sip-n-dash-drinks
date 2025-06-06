@@ -30,6 +30,20 @@ const Categories: React.FC = () => {
     return acc;
   }, {});
 
+  useEffect(() => {
+    console.log("Testing API connection...");
+    fetch('https://barrush-backend.onrender.com/api/drinks/')
+      .then(response => {
+        console.log("Status code:", response.status);
+        return response.json();
+      })
+      .then(data => {
+        console.log("Received data:", data);
+      })
+      .catch(error => {
+        console.error("Error:", error);
+      });
+  }, []);
 
   const handleCategoryClick = (categoryName: string) => {
     setActiveCategory(activeCategory === categoryName ? null : categoryName);

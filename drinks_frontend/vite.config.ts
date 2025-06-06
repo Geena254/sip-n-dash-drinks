@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      "Content-Security-Policy": "script-src 'self' 'unsafe-inline'",
+    },
   },
   plugins: [
     nodePolyfills({
