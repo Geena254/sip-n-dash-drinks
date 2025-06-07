@@ -56,7 +56,7 @@ class DrinksViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({"error": f"Invalid file format: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Optional: Validate headers
+        # Validate headers
         required_headers = {'name', 'description', 'category', 'price'}
         if not required_headers.issubset(df.columns):
             return Response(
@@ -64,36 +64,55 @@ class DrinksViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        updated, created = 0, 0  # counters for reporting
+        created, updated = 0, 0
+        errors = []
 
-        for _, row in df.iterrows():
-            name = str(row['name']).strip()
-            description = str(row['description']).strip()
-            category_name = str(row['category']).strip()
-            
-            try:
-                price = int(row['price'])  # No decimals for KES
-            except:
-                price = 0  # fallback or handle error gracefully
+        with transaction.atomic():  # All operations succeed or fail together
+            for index, row in df.iterrows():
+                try:
+                    name = str(row['name']).strip()
+                    if not name:
+                        raise ValueError("Name cannot be empty")
 
-            # Get or create the category
-            category_instance, _ = DrinksCategory.objects.get_or_create(name=category_name)
+                    description = str(row.get('description', '')).strip()
+                    category_name = str(row['category']).strip()
+                    
+                    try:
+                        price = max(0, int(float(row['price'])))  # Handle decimals and negative
+                    except (ValueError, TypeError):
+                        price = 0
 
-            # Create or update the drink by name
-            drink, was_created = Drinks.objects.update_or_create(
-                name=name,
-                defaults={
-                    'description': description,
-                    'price': price,
-                    'category': category_instance,
-                }
-            )
+                    # Get or create category
+                    category_instance, _ = DrinksCategory.objects.get_or_create(
+                        name=category_name
+                    )
 
-            if was_created:
-                created += 1
-            else:
-                updated += 1
+                    # Update or create drink
+                    _, created_flag = Drinks.objects.update_or_create(
+                        name=name,
+                        defaults={
+                            'description': description,
+                            'price': price,
+                            'category': category_instance,
+                        }
+                    )
 
+                    if created_flag:
+                        created += 1
+                    else:
+                        updated += 1
+
+                except Exception as e:
+                    errors.append(f"Row {index+2}: {str(e)}")  # +2 for header + 1-index
+
+        if errors:
+            return Response({
+                "partial_success": f"Completed with {len(errors)} errors",
+                "created": created,
+                "updated": updated,
+                "errors": errors[:10]  # Return first 10 errors
+            }, status=status.HTTP_206_PARTIAL_CONTENT)
+        
         return Response({
             "success": "Drinks upload complete",
             "created": created,
