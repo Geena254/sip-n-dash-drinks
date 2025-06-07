@@ -47,33 +47,34 @@ class DrinksViewSet(viewsets.ModelViewSet):
             return Response({"error": "Only .xlsx files allowed"}, status=400)
 
         try:
-            # Read Excel in chunks (memory-efficient)
-            chunks = pandas.read_excel(file, engine='openpyxl')
-            df = pandas.concat(chunks).head(2100)
+            # Read the entire file at once (no chunking for Excel)
+            df = pandas.read_excel(file, engine='openpyxl')
+            
+            # Apply your processing
+            df = df.head(2100)  # Limit rows
             df = df.dropna(subset=['name', 'category', 'price'])
             df = df.drop_duplicates(subset=['name'])
+            
         except Exception as e:
             return Response({"error": f"Invalid file: {str(e)}"}, status=400)
 
         # Validate headers
         required_headers = {'name', 'category', 'price'}
         if not required_headers.issubset(df.columns):
-            return Response(
-                {"error": f"Missing headers: {required_headers}"},
-                status=400
-            )
+            return Response({"error": f"Missing headers: {required_headers}"}, status=400)
 
-        errors = []
-        created, updated = 0, 0
-
-        # Process in batches of 100 rows
+        # Process in batches
         batch_size = 100
+        errors = []
+        created = updated = 0
+
         for i in range(0, len(df), batch_size):
-            batch = df.iloc[i:i+batch_size]
+            batch = df.iloc[i:i + batch_size]
             try:
                 with transaction.atomic():
                     for index, row in batch.iterrows():
                         try:
+                            # Your processing logic here
                             name = str(row['name']).strip()
                             if not name:
                                 raise ValueError("Name cannot be empty")
@@ -93,12 +94,15 @@ class DrinksViewSet(viewsets.ModelViewSet):
                                     'category': category_obj,
                                 }
                             )
+                            
                             if created_flag:
                                 created += 1
                             else:
                                 updated += 1
+                                
                         except Exception as e:
                             errors.append(f"Row {index+2}: {str(e)}")
+                            
             except Exception as e:
                 errors.append(f"Batch {i//batch_size + 1} failed: {str(e)}")
 
@@ -107,7 +111,7 @@ class DrinksViewSet(viewsets.ModelViewSet):
                 "partial_success": f"Completed with {len(errors)} errors",
                 "created": created,
                 "updated": updated,
-                "errors": errors[:10]  # Limit error response size
+                "errors": errors[:10]  # Limit error response
             }, status=206)
         
         return Response({
