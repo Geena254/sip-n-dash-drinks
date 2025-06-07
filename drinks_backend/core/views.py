@@ -4,12 +4,57 @@ from .models import *
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from openpyxl import load_workbook
 from rest_framework.permissions import IsAdminUser, AllowAny
 import pandas
+import json
+from io import StringIO
+class DataTransferViewSet(viewsets.ViewSet):
+    """
+    Special viewset for handling data transfer
+    """
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [AllowAny]
+    
+    @action(detail=False, methods=['post'], url_path='import-data')  # Explicit URL path
+    def import_data(self, request):
+        try:
+            if 'data' not in request.FILES:
+                return Response({"error": "No file provided"}, status=400)
+            # Get the uploaded file
+            data_file = request.FILES['data']
+            
+            # Read and parse JSON
+            data = json.load(data_file)
+            
+            # Use Django's serializers to load data
+            stream = StringIO()
+            json.dump(data, stream)
+            stream.seek(0)
+            
+            # Load data into database
+            for obj in serializers.deserialize("json", stream):
+                obj.save()
+                
+            return Response(
+                {'status': 'Data imported successfully'},
+                status=status.HTTP_201_CREATED
+            )
+            
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=False, methods=['get'])
+    def export_data(self, request):
+        # Export all data from your models
+        data = serializers.serialize("json", Drinks.objects.all())
+        return Response(json.loads(data))
 
 class DrinksCategoryViewSet(viewsets.ModelViewSet):
     queryset = DrinksCategory.objects.all()
