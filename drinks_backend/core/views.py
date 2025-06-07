@@ -43,7 +43,7 @@ class DrinksViewSet(viewsets.ModelViewSet):
     detail=False,
     methods=['post'],
     url_path='upload-xlsx',
-    permission_classes=[AllowAny],  # Only admins
+    # permission_classes=[AllowAny],  # Only admins
     )
     def upload_xlsx(self, request):
         file = request.FILES.get('file')
