@@ -11,6 +11,9 @@ from openpyxl import load_workbook
 from rest_framework.permissions import IsAdminUser, AllowAny
 from django.db import transaction
 import pandas
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DrinksCategoryViewSet(viewsets.ModelViewSet):
     queryset = DrinksCategory.objects.all()
@@ -34,62 +37,85 @@ class DrinksViewSet(viewsets.ModelViewSet):
                 in_=openapi.IN_FORM,
                 type=openapi.TYPE_FILE,
                 required=True,
-                description="Upload an .xlsx file with drink data"
+                description="Upload a CSV file with drink data"
             ),
         ],
-        # security=[{'Bearer': []}],
-        responses={200: openapi.Response("Drinks uploaded successfully")},
+        responses={
+            200: openapi.Response("Drinks uploaded successfully"),
+            206: openapi.Response("Partial success (some rows failed)"),
+            400: openapi.Response("Invalid file format or missing headers")
+        },
     )
-    @action(detail=False, methods=['post'], url_path='upload-xlsx')
-    def upload_xlsx(self, request):
+    @action(detail=False, methods=['post'], url_path='upload-csv')
+    def upload_csv(self, request):
         file = request.FILES.get('file')
-        if not file or not file.name.endswith('.xlsx'):
-            return Response({"error": "Only .xlsx files allowed"}, status=400)
+        
+        if not file:
+            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not file.name.endswith('.csv'):
+            return Response({"error": "Only CSV files are allowed"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Read the entire file at once (no chunking for Excel)
-            df = pandas.read_excel(file, engine='openpyxl')
+            # Read CSV in chunks to handle large files
+            chunks = pandas.read_csv(
+                file,
+                chunksize=500,  # Process 500 rows at a time
+                dtype={'price': str},  # Handle price as string initially
+                on_bad_lines='skip'  # Skip malformed rows
+            )
+            df = pandas.concat(chunks)
             
-            # Apply your processing
-            df = df.head(2100)  # Limit rows
+            # Basic validation
             df = df.dropna(subset=['name', 'category', 'price'])
             df = df.drop_duplicates(subset=['name'])
             
         except Exception as e:
-            return Response({"error": f"Invalid file: {str(e)}"}, status=400)
+            logger.error(f"CSV read failed: {str(e)}")
+            return Response({"error": f"Invalid CSV file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate headers
+        # Validate required headers
         required_headers = {'name', 'category', 'price'}
-        if not required_headers.issubset(df.columns):
-            return Response({"error": f"Missing headers: {required_headers}"}, status=400)
+        if missing := required_headers - set(df.columns):
+            return Response({"error": f"Missing headers: {missing}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Process in batches
-        batch_size = 100
         errors = []
         created = updated = 0
 
+        # Process in smaller batches for reliability
+        batch_size = 100
         for i in range(0, len(df), batch_size):
             batch = df.iloc[i:i + batch_size]
             try:
                 with transaction.atomic():
                     for index, row in batch.iterrows():
                         try:
-                            # Your processing logic here
+                            # Validate and process each row
                             name = str(row['name']).strip()
                             if not name:
                                 raise ValueError("Name cannot be empty")
-
-                            price = max(0, float(row['price']))
+                            
+                            # Handle price conversion
+                            try:
+                                price_str = str(row['price']).replace(',', '').strip()
+                                price = max(0, float(price_str))
+                            except (ValueError, TypeError):
+                                raise ValueError(f"Invalid price: {row['price']}")
+                            
                             category = str(row['category']).strip()
+                            if not category:
+                                raise ValueError("Category cannot be empty")
 
+                            # Get or create category
                             category_obj, _ = DrinksCategory.objects.get_or_create(
-                                name=category
+                                name=category[:50]  # Ensure max_length compliance
                             )
 
+                            # Update or create drink
                             _, created_flag = Drinks.objects.update_or_create(
-                                name=name,
+                                name=name[:100],  # Ensure max_length
                                 defaults={
-                                    'description': str(row.get('description', '')).strip(),
+                                    'description': str(row.get('description', ''))[:255],
                                     'price': price,
                                     'category': category_obj,
                                 }
@@ -102,23 +128,26 @@ class DrinksViewSet(viewsets.ModelViewSet):
                                 
                         except Exception as e:
                             errors.append(f"Row {index+2}: {str(e)}")
+                            logger.warning(f"Row error: {e}")
                             
             except Exception as e:
                 errors.append(f"Batch {i//batch_size + 1} failed: {str(e)}")
+                logger.error(f"Batch failed: {e}")
 
         if errors:
             return Response({
-                "partial_success": f"Completed with {len(errors)} errors",
+                "partial_success": True,
                 "created": created,
                 "updated": updated,
-                "errors": errors[:10]  # Limit error response
-            }, status=206)
+                "error_count": len(errors),
+                "sample_errors": errors[:5]  # Return first 5 errors only
+            }, status=status.HTTP_206_PARTIAL_CONTENT)
         
         return Response({
-            "success": "Upload complete",
+            "success": True,
             "created": created,
             "updated": updated
-        })
+        }, status=status.HTTP_200_OK)
 
 class CocktailsViewSet(viewsets.ModelViewSet):
     queryset = Cocktails.objects.all()
