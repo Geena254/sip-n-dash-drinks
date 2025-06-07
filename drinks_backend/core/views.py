@@ -9,6 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from openpyxl import load_workbook
 from rest_framework.permissions import IsAdminUser, AllowAny
+from django.db import transaction
 import pandas
 
 class DrinksCategoryViewSet(viewsets.ModelViewSet):
@@ -52,7 +53,15 @@ class DrinksViewSet(viewsets.ModelViewSet):
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            df = pandas.read_excel(file)
+            df = df = df.head(2100)  # Limit to 2100 rows
+            df = df.dropna(subset=['name', 'description', 'category', 'price'])
+            df = df.drop_duplicates(subset=['name'])
+            if not file.name.endswith('.xlsx'):
+                return Response({"error": "Only .xlsx files are allowed"}, status=status.HTTP_400_BAD_REQUEST)
+            df = pandas.read_excel(file, engine='openpyxl')
+        except pandas.errors.EmptyDataError:
+            return Response({"error": "Uploaded file is empty"}, status=status.HTTP_400_BAD_REQUEST)
+        
         except Exception as e:
             return Response({"error": f"Invalid file format: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -104,6 +113,12 @@ class DrinksViewSet(viewsets.ModelViewSet):
 
                 except Exception as e:
                     errors.append(f"Row {index+2}: {str(e)}")  # +2 for header + 1-index
+
+                except Exception as e:
+                    return Response(
+                        {"error": f"Database error: {str(e)}"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
         if errors:
             return Response({
