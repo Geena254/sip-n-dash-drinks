@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from django.db import transaction
 import pandas
 import logging
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +47,17 @@ class DrinksViewSet(viewsets.ModelViewSet):
             400: openapi.Response("Invalid file format or missing headers")
         },
     )
-    @action(detail=False, methods=['post'], url_path='upload-csv')
+    @action(detail=False, methods=['post', 'options'], url_path='upload-csv')
+    @csrf_exempt
     def upload_csv(self, request):
         file = request.FILES.get('file')
-        
+        if request.method == 'OPTIONS':
+            response = Response(status=status.HTTP_200_OK)
+            response['Access-Control-Allow-Origin'] = '*'
+            response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            return response
+
         if not file:
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
         
