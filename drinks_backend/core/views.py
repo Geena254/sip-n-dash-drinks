@@ -53,12 +53,13 @@ class DrinksViewSet(viewsets.ModelViewSet):
             return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            df = pandas.read_excel(file, engine='openpyxl')
             df = df = df.head(2100)  # Limit to 2100 rows
             df = df.dropna(subset=['name', 'description', 'category', 'price'])
             df = df.drop_duplicates(subset=['name'])
             if not file.name.endswith('.xlsx'):
                 return Response({"error": "Only .xlsx files are allowed"}, status=status.HTTP_400_BAD_REQUEST)
-            df = pandas.read_excel(file, engine='openpyxl')
+            
         except pandas.errors.EmptyDataError:
             return Response({"error": "Uploaded file is empty"}, status=status.HTTP_400_BAD_REQUEST)
         
