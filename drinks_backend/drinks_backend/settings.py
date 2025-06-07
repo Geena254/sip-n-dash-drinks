@@ -83,24 +83,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'drinks_backend.wsgi.application'
 
 # Database
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
-#         conn_max_age=600,
-#         conn_health_checks=True,
-#     )
-# }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'barrushdelivery',
-        'USER': 'geenah',
-        'PASSWORD': 'yNcTTJu0Om3UrDEEgNLwGFyc2kc7FvyR',
-        'HOST': 'dpg-d114qh2dbo4c739l6ce0-a.oregon-postgres.render.com',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'barrushdelivery',
+#         'USER': 'geenah',
+#         'PASSWORD': 'yNcTTJu0Om3UrDEEgNLwGFyc2kc7FvyR',
+#         'HOST': 'dpg-d114qh2dbo4c739l6ce0-a.oregon-postgres.render.com',
+#         'PORT': '5432',
+#     }
+# }
 # DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',
