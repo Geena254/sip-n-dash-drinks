@@ -28,7 +28,6 @@ router.register(r'orders', OrderViewSet)
 router.register(r'offers', OfferViewSet)
 router.register(r'contacts', ContactViewSet)
 router.register(r'customers', CustomerInfoViewSet)
-router.register(r'data-transfer', DataTransferViewSet, basename='data-transfer')
 
 
 urlpatterns = [
@@ -36,4 +35,4 @@ urlpatterns = [
     # authentications
     path('api/auth/login/', TokenObtainPairView.as_view(serializer_class=CustomTokenObtainPairSerializer), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-] + router.urls
+]
