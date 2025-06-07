@@ -90,17 +90,7 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'barrushdelivery',
-#         'USER': 'geenah',
-#         'PASSWORD': 'yNcTTJu0Om3UrDEEgNLwGFyc2kc7FvyR',
-#         'HOST': 'dpg-d114qh2dbo4c739l6ce0-a.oregon-postgres.render.com',
-#         'PORT': '5432',
-#     }
-# }
+# If you want to use SQLite instead of PostgreSQL, uncomment the following lines:
 # DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3',
