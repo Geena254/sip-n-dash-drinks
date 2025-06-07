@@ -48,7 +48,7 @@ class DrinksViewSet(viewsets.ModelViewSet):
 
         try:
             # Read Excel in chunks (memory-efficient)
-            chunks = pandas.read_excel(file, engine='openpyxl', chunksize=500)
+            chunks = pandas.read_excel(file, engine='openpyxl')
             df = pandas.concat(chunks).head(2100)
             df = df.dropna(subset=['name', 'category', 'price'])
             df = df.drop_duplicates(subset=['name'])
