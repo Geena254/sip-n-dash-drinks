@@ -40,97 +40,78 @@ class DrinksViewSet(viewsets.ModelViewSet):
         # security=[{'Bearer': []}],
         responses={200: openapi.Response("Drinks uploaded successfully")},
     )
-    @action(
-    detail=False,
-    methods=['post'],
-    url_path='upload-xlsx',
-    # permission_classes=[AllowAny],  # Only admins
-    )
+    @action(detail=False, methods=['post'], url_path='upload-xlsx')
     def upload_xlsx(self, request):
         file = request.FILES.get('file')
-
-        if not file:
-            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+        if not file or not file.name.endswith('.xlsx'):
+            return Response({"error": "Only .xlsx files allowed"}, status=400)
 
         try:
-            df = pandas.read_excel(file, engine='openpyxl')
-            df = df = df.head(2100)  # Limit to 2100 rows
-            df = df.dropna(subset=['name', 'description', 'category', 'price'])
+            # Read Excel in chunks (memory-efficient)
+            chunks = pandas.read_excel(file, engine='openpyxl', chunksize=500)
+            df = pandas.concat(chunks).head(2100)
+            df = df.dropna(subset=['name', 'category', 'price'])
             df = df.drop_duplicates(subset=['name'])
-            if not file.name.endswith('.xlsx'):
-                return Response({"error": "Only .xlsx files are allowed"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        except pandas.errors.EmptyDataError:
-            return Response({"error": "Uploaded file is empty"}, status=status.HTTP_400_BAD_REQUEST)
-        
         except Exception as e:
-            return Response({"error": f"Invalid file format: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Invalid file: {str(e)}"}, status=400)
 
         # Validate headers
-        required_headers = {'name', 'description', 'category', 'price'}
+        required_headers = {'name', 'category', 'price'}
         if not required_headers.issubset(df.columns):
             return Response(
-                {"error": f"Missing headers. Required: {required_headers}"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": f"Missing headers: {required_headers}"},
+                status=400
             )
 
-        created, updated = 0, 0
         errors = []
+        created, updated = 0, 0
 
-        with transaction.atomic():  # All operations succeed or fail together
-            for index, row in df.iterrows():
-                try:
-                    name = str(row['name']).strip()
-                    if not name:
-                        raise ValueError("Name cannot be empty")
+        # Process in batches of 100 rows
+        batch_size = 100
+        for i in range(0, len(df), batch_size):
+            batch = df.iloc[i:i+batch_size]
+            try:
+                with transaction.atomic():
+                    for index, row in batch.iterrows():
+                        try:
+                            name = str(row['name']).strip()
+                            if not name:
+                                raise ValueError("Name cannot be empty")
 
-                    description = str(row.get('description', '')).strip()
-                    category_name = str(row['category']).strip()
-                    
-                    try:
-                        price = max(0, int(float(row['price'])))  # Handle decimals and negative
-                    except (ValueError, TypeError):
-                        price = 0
+                            price = max(0, float(row['price']))
+                            category = str(row['category']).strip()
 
-                    # Get or create category
-                    category_instance, _ = DrinksCategory.objects.get_or_create(
-                        name=category_name
-                    )
+                            category_obj, _ = DrinksCategory.objects.get_or_create(
+                                name=category
+                            )
 
-                    # Update or create drink
-                    _, created_flag = Drinks.objects.update_or_create(
-                        name=name,
-                        defaults={
-                            'description': description,
-                            'price': price,
-                            'category': category_instance,
-                        }
-                    )
-
-                    if created_flag:
-                        created += 1
-                    else:
-                        updated += 1
-
-                except Exception as e:
-                    errors.append(f"Row {index+2}: {str(e)}")  # +2 for header + 1-index
-
-                except Exception as e:
-                    return Response(
-                        {"error": f"Database error: {str(e)}"}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+                            _, created_flag = Drinks.objects.update_or_create(
+                                name=name,
+                                defaults={
+                                    'description': str(row.get('description', '')).strip(),
+                                    'price': price,
+                                    'category': category_obj,
+                                }
+                            )
+                            if created_flag:
+                                created += 1
+                            else:
+                                updated += 1
+                        except Exception as e:
+                            errors.append(f"Row {index+2}: {str(e)}")
+            except Exception as e:
+                errors.append(f"Batch {i//batch_size + 1} failed: {str(e)}")
 
         if errors:
             return Response({
                 "partial_success": f"Completed with {len(errors)} errors",
                 "created": created,
                 "updated": updated,
-                "errors": errors[:10]  # Return first 10 errors
-            }, status=status.HTTP_206_PARTIAL_CONTENT)
+                "errors": errors[:10]  # Limit error response size
+            }, status=206)
         
         return Response({
-            "success": "Drinks upload complete",
+            "success": "Upload complete",
             "created": created,
             "updated": updated
         })
