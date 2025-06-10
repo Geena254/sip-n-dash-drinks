@@ -49,11 +49,14 @@ const Footer: React.FC = () => {
                 <ul className="space-y-3">
                 <li className="flex items-center">
                     <FaEnvelope className="mr-2 text-purple-500" />
-                    <a href="mailto:info@barrush.com" className="text-gray-600 hover:text-purple-700 transition-colors">barrushdelivery@gmail.com</a>
+                    <a href="mailto:info@barrush.com" className="text-gray-600 hover:text-purple-700 transition-colors">info@barrush.co.ke</a>
+                </li>
+                <li className="flex items-center">
+                    <a href="mailto:info@barrush.com" className="text-gray-600 hover:text-purple-700 transition-colors">   barrushke@gmail.com</a>
                 </li>
                 <li className="flex items-center">
                     <FaPhone className="mr-2 text-purple-500" />
-                    <a href="tel:+1234567890" className="text-gray-600 hover:text-purple-700 transition-colors">+254 703 320 399/+254 796 676 253</a>
+                    <a href="tel:+1234567890" className="text-gray-600 hover:text-purple-700 transition-colors">+254 796 676 253</a>
                 </li>
                 <li className="flex items-start">
                     <FaMapMarkerAlt className="mr-2 mt-1 text-purple-500" />
