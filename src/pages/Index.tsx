@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import Lottie from "lottie-react";
 import devAnimation from "../images/delivery man.json";
 import { supabaseAPI, Category, Product } from '@/service/supabaseService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Offer {
   id: number;
@@ -48,7 +48,7 @@ const Index = () => {
 
   const fetchOffers = async (): Promise<Offer[]> => {
     try {
-      const { data, error } = await supabaseAPI.supabase
+      const { data, error } = await supabase
         .from('Offers')
         .select('*')
         .limit(3);
