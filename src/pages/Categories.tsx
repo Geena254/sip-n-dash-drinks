@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,16 +39,9 @@ const Categories: React.FC = () => {
         
         setDrinks(fetchedDrinks);
         
-        // Calculate product count for each category
+        // Calculate product count for each category based on category_id
         const categoriesWithCount = fetchedCategories.map(category => {
-          const productCount = fetchedDrinks.filter(drink => {
-            const drinkCategory = typeof drink.category === 'object' && drink.category !== null 
-              ? drink.category.name 
-              : typeof drink.category === 'string' 
-                ? drink.category 
-                : 'Uncategorized';
-            return drinkCategory === category.name;
-          }).length;
+          const productCount = fetchedDrinks.filter(drink => drink.category_id === category.id).length;
           
           return {
             ...category,

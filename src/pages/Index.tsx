@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,19 @@ const Index = () => {
           fetchOffers()
         ]);
         
-        setCategories(categoriesData.slice(0, 4));
+        // Calculate product count for each category
+        const categoriesWithCount = categoriesData.map(category => {
+          const productCount = drinksData.filter(drink => {
+            return drink.category_id === category.id;
+          }).length;
+          
+          return {
+            ...category,
+            product_count: productCount
+          };
+        });
+        
+        setCategories(categoriesWithCount.slice(0, 4));
         setDrinks(drinksData.slice(0, 6));
         setOffers(offersData.slice(0, 3));
       } catch (error) {

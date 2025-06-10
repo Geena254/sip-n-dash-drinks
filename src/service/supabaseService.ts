@@ -26,6 +26,19 @@ export type Product = {
   category: string | Category
 }
 
+export type CocktailRecipe = {
+  id: number
+  name: string
+  description: string
+  ingredients: string
+  instructions: string
+  prep_time: number
+  difficulty: string
+  image_url: string
+  category: string
+  created_at: string
+}
+
 export const supabaseAPI = {
   async getCategories(): Promise<Category[]> {
     const { data, error } = await supabase
@@ -100,6 +113,19 @@ export const supabaseAPI = {
         ...product,
         category: product.category || 'Uncategorized'
       })) ?? []
+    }
+    return data ?? []
+  },
+
+  async getCocktailRecipes(): Promise<CocktailRecipe[]> {
+    const { data, error } = await supabase
+      .from('cocktail_recipes')
+      .select('*')
+      .order('name')
+
+    if (error) {
+      console.error('Error fetching cocktail recipes:', error);
+      throw error;
     }
     return data ?? []
   },

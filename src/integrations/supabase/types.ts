@@ -30,6 +30,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cocktail_recipes: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          id: number
+          image_url: string | null
+          ingredients: string
+          instructions: string
+          name: string
+          prep_time: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          id?: number
+          image_url?: string | null
+          ingredients: string
+          instructions: string
+          name: string
+          prep_time?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          id?: number
+          image_url?: string | null
+          ingredients?: string
+          instructions?: string
+          name?: string
+          prep_time?: number | null
+        }
+        Relationships: []
+      }
       Offers: {
         Row: {
           code: string | null
