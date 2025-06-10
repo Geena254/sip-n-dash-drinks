@@ -68,14 +68,14 @@ class DrinksViewSet(viewsets.ModelViewSet):
             # Read CSV in chunks to handle large files
             chunks = pandas.read_csv(
                 file,
-                chunksize=500,  # Process 500 rows at a time
+                chunksize=200,  # Process 500 rows at a time
                 dtype={'price': str},  # Handle price as string initially
                 on_bad_lines='skip'  # Skip malformed rows
             )
             df = pandas.concat(chunks)
             
             # Basic validation
-            df = df.dropna(subset=['name', 'category', 'price'])
+            df = df.dropna(subset=['name', 'description', 'category', 'price'])
             df = df.drop_duplicates(subset=['name'])
             
         except Exception as e:
@@ -83,7 +83,7 @@ class DrinksViewSet(viewsets.ModelViewSet):
             return Response({"error": f"Invalid CSV file: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validate required headers
-        required_headers = {'name', 'category', 'price'}
+        required_headers = {'name', 'description', 'category', 'price'}
         if missing := required_headers - set(df.columns):
             return Response({"error": f"Missing headers: {missing}"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -148,7 +148,7 @@ class DrinksViewSet(viewsets.ModelViewSet):
                 "created": created,
                 "updated": updated,
                 "error_count": len(errors),
-                "sample_errors": errors[:5]  # Return first 5 errors only
+                "sample_errors": errors[:10]  # Return first 5 errors only
             }, status=status.HTTP_206_PARTIAL_CONTENT)
         
         return Response({

@@ -1,72 +1,99 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Package, CupSoda, Tag, Percent } from 'lucide-react';
+import { ShoppingCart, Tag, Percent } from 'lucide-react';
 import DrinkCard from '@/components/DrinkCard';
-import { DrinkItem } from '@/context/CartContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getDrinkCategories, getDrinks, getOffers } from '@/service/apiService';
 import Lottie from "lottie-react";
 import devAnimation from "../images/delivery man.json";
+import { supabase } from '@/service/supabaseService';
+
+interface Category {
+  id: number;
+  name: string;
+  product_count: number;
+  description: string;
+}
+
+interface Drink {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  category: string;
+  category_id: number;
+}
 
 interface Offer {
   id: number;
   title: string;
   description: string;
-  category: string;
+  // category: string;
   discount: string;
   code: string;
 }
 
 const Index = () => {
-  const [categories, setCategories] = useState([])
-  const [drinks, setDrinks] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [drinks, setDrinks] = useState<Drink[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
 
-  // offers fetch
+  // Fetch offers from Supabase
   const fetchOffers = async () => {
     try {
-      const data = await getOffers();
-      setOffers(data.slice(0, 3));
+      const { data, error } = await supabase
+        .from('offers')
+        .select('*')
+        .limit(3);
+
+      if (error) throw error;
+      if (data) setOffers(data);
     } catch (err) {
       console.error('Error loading Offers:', err);
     }
   };
 
-  useEffect(() => {
-    fetchOffers();
-  }, []);
-
-  // drinks fetch
+  // Fetch drinks from Supabase
   const fetchDrinks = async () => {
     try {
-      const data = await getDrinks();
-      setDrinks(data.slice(0, 6));
-    } catch (err) {
-      console.error('Error loading drinks:', err);
-    }
-  };
-  useEffect(() => {
-    fetchDrinks();
-  }, []);
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, description, price, image_url, category, category_id')
+        .limit(6);
 
-  // drinks category fetch
-  const fetchDrinksCategories = async () => {
-    try {
-      const data = await getDrinkCategories();
-      setCategories(data);
+      if (error) throw error;
+      if (data) setDrinks(data);
     } catch (err) {
       console.error('Error loading drinks:', err);
     }
   };
+
+  // Fetch drink categories from Supabase
+  const fetchDrinkCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, product_count, description')
+        .limit(10);
+
+      if (error) throw error;
+      if (data) setCategories(data);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  };
+
   useEffect(() => {
-    fetchDrinksCategories();
+    fetchOffers();
+    fetchDrinks();
+    fetchDrinkCategories();
   }, []);
 
   return (
     <div className="min-h-screen">
-      {/* Hero section with simplified clean design */}
+      {/* Hero section */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
@@ -107,7 +134,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Categories section with improved UI */}
+      {/* Categories section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold">Shop by Category</h2>
@@ -120,14 +147,13 @@ const Index = () => {
             <Link
               to={`/categories`}
               state={{ category: category.name }}
-              key={category.name}
+              key={category.id}
               className="group"
             >
               <Card className="h-full overflow-hidden border-0 shadow-md transition-all group-hover:-translate-y-1 group-hover:shadow-lg">
                 <CardContent className="p-6 bg-rose-50">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-medium text-lg bg-rose-50">{category.name}</h3>
-                    {/* <category.icon className="text-rose-600" size={24} /> */}
                   </div>
                   <div className="flex items-end justify-between">
                     <p className="text-sm text-muted-foreground">{category.product_count} items</p>
@@ -152,7 +178,13 @@ const Index = () => {
 
           <div className="drink-card-container">
             {drinks.map((drink) => (
-              <DrinkCard key={drink.id} drink={drink} />
+              <DrinkCard
+                key={drink.id}
+                drink={{
+                  ...drink,
+                  image: drink.image_url,
+                }}
+              />
             ))}
           </div>
         </div>
@@ -190,7 +222,7 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Fast delivery section with improved UI */}
+      {/* Fast delivery section */}
       <div className="bg-gradient-to-br from-primary/5 to-secondary/5 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h3 className="text-2xl font-semibold mb-4">Fast Delivery In Your Area</h3>
