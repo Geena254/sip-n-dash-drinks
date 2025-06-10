@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useCart, DrinkItem } from '@/context/CartContext';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -11,6 +12,7 @@ type Drink = {
   price: number;
   description: string;
   image: string;
+  image_url?: string;
 };
 
 interface DrinkCardProps {
@@ -20,13 +22,29 @@ interface DrinkCardProps {
 const DrinkCard: React.FC<DrinkCardProps> = ({ drink }) => {
   const { addToCart } = useCart();
 
+  // Use image_url if available, otherwise fallback to image
+  const imageUrl = drink.image_url || drink.image || '/placeholder.svg';
+
+  const drinkItem: DrinkItem = {
+    id: drink.id,
+    name: drink.name,
+    price: drink.price,
+    description: drink.description,
+    image: imageUrl,
+    category: drink.category
+  };
+
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
       <div className="h-48 overflow-hidden">
         <img
-          src={drink.image}
+          src={imageUrl}
           alt={drink.name}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = '/placeholder.svg';
+          }}
         />
       </div>
       <CardContent className="pt-4">
@@ -36,14 +54,14 @@ const DrinkCard: React.FC<DrinkCardProps> = ({ drink }) => {
             <p className="text-sm text-muted-foreground">{drink.category}</p>
           </div>
           <div className="text-right">
-            <span className="font-bold text-lg">KES {drink.price.toLocaleString('en-KE')}</span>
+            <span className="font-bold text-lg">KES {drink.price?.toLocaleString('en-KE') || 0}</span>
           </div>
         </div>
         <p className="mt-2 text-sm line-clamp-2">{drink.description}</p>
       </CardContent>
       <CardFooter>
         <Button
-          onClick={() => addToCart(drink)}
+          onClick={() => addToCart(drinkItem)}
           className="w-full gap-2"
         >
           <ShoppingCart size={16} />

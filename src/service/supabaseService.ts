@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -20,28 +21,31 @@ export type Product = {
   name: string
   description: string
   price: number
-  image: string
+  image_url: string
   category_id: number
-  category: Category
+  category: string | Category
 }
 
 export const supabaseAPI = {
   async getCategories(): Promise<Category[]> {
     const { data, error } = await supabase
-      .from('categories')
+      .from('Categories')
       .select('*')
       .order('name')
 
-    if (error) throw error
+    if (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
     return data ?? []
   },
 
   async getProducts(): Promise<Product[]> {
     const { data, error } = await supabase
-      .from('products')
+      .from('Products')
       .select(`
         *,
-        category:category_id (
+        Categories!Products_category_id_fkey (
           id,
           name,
           description
@@ -49,16 +53,33 @@ export const supabaseAPI = {
       `)
       .order('name')
 
-    if (error) throw error
+    if (error) {
+      console.error('Error fetching products:', error);
+      // If the foreign key query fails, try a simpler query
+      const { data: simpleData, error: simpleError } = await supabase
+        .from('Products')
+        .select('*')
+        .order('name')
+      
+      if (simpleError) {
+        console.error('Error with simple query:', simpleError);
+        throw simpleError;
+      }
+      
+      return simpleData?.map(product => ({
+        ...product,
+        category: product.category || 'Uncategorized'
+      })) ?? []
+    }
     return data ?? []
   },
 
   async getProductsByCategory(categoryId: number): Promise<Product[]> {
     const { data, error } = await supabase
-      .from('products')
+      .from('Products')
       .select(`
         *,
-        category:category_id (
+        Categories!Products_category_id_fkey (
           id,
           name,
           description
@@ -66,49 +87,59 @@ export const supabaseAPI = {
       `)
       .eq('category_id', categoryId)
 
-    if (error) throw error
+    if (error) {
+      console.error('Error fetching products by category:', error);
+      // Fallback to simple query
+      const { data: simpleData, error: simpleError } = await supabase
+        .from('Products')
+        .select('*')
+        .eq('category_id', categoryId)
+      
+      if (simpleError) throw simpleError;
+      return simpleData?.map(product => ({
+        ...product,
+        category: product.category || 'Uncategorized'
+      })) ?? []
+    }
     return data ?? []
   },
-  // Add new product
-  async addProduct(productData) {
-      const { data, error } = await supabase
-      .from('products')
+
+  async addProduct(productData: any) {
+    const { data, error } = await supabase
+      .from('Products')
       .insert([productData])
       .select()
       
-      if (error) throw error
-      return data[0]
+    if (error) throw error
+    return data[0]
   },
 
-  // Upload image to Supabase Storage
-  async uploadImage(file, bucket = 'product-images') {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}.${fileExt}`
-      
-      const { data, error } = await supabase.storage
+  async uploadImage(file: File, bucket = 'product-images') {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    
+    const { data, error } = await supabase.storage
       .from(bucket)
       .upload(fileName, file)
       
-      if (error) throw error
-  
-  // Get public URL
-      const { data: publicData } = supabase.storage
+    if (error) throw error
+
+    const { data: publicData } = supabase.storage
       .from(bucket)
       .getPublicUrl(fileName)
       
-      return {
+    return {
       path: data.path,
       publicUrl: publicData.publicUrl
-      }
+    }
   },
 
-// Delete image from storage
-  async deleteImage(filePath, bucket = 'product-images') {
-      const { error } = await supabase.storage
+  async deleteImage(filePath: string, bucket = 'product-images') {
+    const { error } = await supabase.storage
       .from(bucket)
       .remove([filePath])
       
-      if (error) throw error
-      return true
+    if (error) throw error
+    return true
   }
 }

@@ -1,1219 +1,192 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { ChartBar, DollarSign, Users, TrendingUp, TrendingDown, Package, FileText, Inbox, Search, Plus, AlertTriangle, Settings, Eye, Edit, Archive } from 'lucide-react';
+import { supabaseAPI } from '@/service/supabaseService';
+import { Plus, Edit, Trash } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-// Sample chart data
-const chartData = [
-  { name: 'Apr 25', visitors: 120, orders: 4, revenue: 172 },
-  { name: 'Apr 26', visitors: 145, orders: 6, revenue: 235 },
-  { name: 'Apr 27', visitors: 132, orders: 5, revenue: 188 },
-  { name: 'Apr 28', visitors: 178, orders: 8, revenue: 304 },
-  { name: 'Apr 29', visitors: 189, orders: 9, revenue: 342 },
-  { name: 'Apr 30', visitors: 210, orders: 11, revenue: 401 },
-  { name: 'May 1', visitors: 252, orders: 14, revenue: 492 },
-];
-
-// Sample inventory data
-const inventoryData = [
-  { id: 1, name: 'Premium Scotch', category: 'Spirits', stock: 24, price: 5899, reorder: 10 },
-  { id: 2, name: 'Craft IPA', category: 'Beer', stock: 48, price: 1299, reorder: 20 },
-  { id: 3, name: 'Red Wine', category: 'Wine', stock: 15, price: 2450, reorder: 8 },
-  { id: 4, name: 'Vodka', category: 'Spirits', stock: 6, price: 1875, reorder: 10 },
-  { id: 5, name: 'Non-Alcoholic Beer', category: 'Non-Alcoholic', stock: 30, price: 899, reorder: 15 },
-];
-
-// Sample sales by category data
-const salesByCategoryData = [
-  { name: 'Beer', value: 35 },
-  { name: 'Wine', value: 25 },
-  { name: 'Spirits', value: 30 },
-  { name: 'Non-Alcoholic', value: 10 },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+interface Order {
+  id: string;
+  customer_name: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+}
 
 const Admin = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [authenticated, setAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [lowStockAlerts, setLowStockAlerts] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [viewOrderDialog, setViewOrderDialog] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState(null);
-  const [viewProductDialog, setViewProductDialog] = useState(false);
-  const [editProductDialog, setEditProductDialog] = useState(false);
-  const [orderProductDialog, setOrderProductDialog] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-  const [viewCustomerDialog, setViewCustomerDialog] = useState(false);
-  const [currentCustomer, setCurrentCustomer] = useState(null);
-  const [orderData, setOrderData] = useState([]);
-  const [customerData, setCustomerData] = useState([]);
-
-  const convertItemsObjectToArray = (itemsObj) => {
-    if (!itemsObj || typeof itemsObj !== "object") return [];
-    return Object.entries(itemsObj).map(([name, details]) => ({
-      name,
-      quantity: details.quantity,
-      price: details.price || 0,
-    }));
-  };
-
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/orders/');
-      if (!res.ok) throw new Error('Failed to fetch orders');
-      const data = await res.json();
-      
-      const processedData = data.map((order) => ({
-        id: order.order_id || order.id,
-        customer: order.customer?.name || "Anonymous",
-        customerObject: order.customer,
-        delivery_area: order.delivery_area || "Unknown",
-        county: order.county || "Unknown",
-        items: convertItemsObjectToArray(order.items || order.products),
-        date: order.date || new Date().toISOString().split('T')[0],
-        status: order.status || "initiated",
-        total: parseFloat(order.order_total) || 0,
-        seen: order.seen || false
-      }));
-
-      setOrderData(processedData);
-
-      // Update notifications for new orders
-      const newOrders = processedData.filter(order => !order.seen);
-      if (newOrders.length > 0) {
-        setNotifications(prev => [
-          ...newOrders.map(order => ({
-            id: Date.now() + order.id,
-            message: `🆕 New order #${order.id} received from ${order.customer}`,
-            read: false,
-            time: 'Just now'
-          })),
-          ...prev
-        ]);
-      }
-    } catch (err) {
-      console.error("Failed to fetch orders:", err);
-      toast({
-        title: "Error",
-        description: "Failed to fetch orders. Using sample data.",
-        variant: "destructive"
-      });
-      setOrderData([
-        {
-          id: 1245,
-          customer: "John Doe",
-          customerObject: { id: 1, name: "John Doe", email: "john@example.com" },
-          delivery_area: "Downtown",
-          county: "Nairobi",
-          items: [
-            { name: "Craft IPA", quantity: 3, price: 1299 },
-            { name: "Premium Scotch", quantity: 1, price: 5899 }
-          ],
-          date: "2025-05-01",
-          status: "initiated",
-          total: 8997,
-          seen: true
-        }
-      ]);
-    }
-  };
-
-  const fetchCustomers = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/customers/');
-      if (!res.ok) throw new Error('Failed to fetch customers');
-      const data = await res.json();
-      
-      const processedCustomers = data.map(customer => ({
-        id: customer.id,
-        name: customer.name || "Unknown",
-        email: customer.email || "N/A",
-        orders: customer.orders?.length || 0,
-        totalSpent: customer.orders?.reduce((sum, order) => sum + (parseFloat(order.order_total) || 0), 0) || 0,
-        lastOrder: customer.orders?.length > 0 ? customer.orders[0].date : "N/A",
-        address: customer.address || "N/A",
-        county: customer.county || "N/A",
-        phone: customer.phone || "N/A"
-      }));
-      
-      setCustomerData(processedCustomers);
-    } catch (err) {
-      console.error("Failed to fetch customers:", err);
-      setCustomerData([
-        {
-          id: 1,
-          name: "John Doe",
-          email: "john@example.com",
-          orders: 12,
-          totalSpent: 458.50,
-          lastOrder: "2025-05-01",
-          address: "123 Main St, Downtown",
-          county: "Nairobi",
-          phone: "+254 700 123 456"
-        }
-      ]);
-    }
-  };
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    fetchOrders();
-    fetchCustomers();
-    const interval = setInterval(fetchOrders, 5000);
-    return () => clearInterval(interval);
+    fetchData();
   }, []);
 
-  const updateOrderStatus = async (orderId, newStatus) => {
+  const fetchData = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/orders/${orderId}/`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to update status");
-      }
-
-      setOrderData(prev =>
-        prev.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-
-      toast({
-        title: "Success",
-        description: `Order #${orderId} status updated to ${newStatus}`,
-      });
-
-      // Update notification for status change
-      setNotifications(prev => [
-        {
-          id: Date.now(),
-          message: `Order #${orderId} status changed to ${newStatus}`,
-          read: false,
-          time: 'Just now'
-        },
-        ...prev
+      const [productsData, categoriesData] = await Promise.all([
+        supabaseAPI.getProducts(),
+        supabaseAPI.getCategories()
       ]);
+      
+      setProducts(productsData);
+      setCategories(categoriesData);
     } catch (error) {
-      console.error("Error updating status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update order status",
-        variant: "destructive"
-      });
+      console.error('Error fetching data:', error);
     }
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (password === 'admin123') {
-      setAuthenticated(true);
-      setError('');
-    } else {
-      setError('Invalid password');
+  // Mock orders data since we don't have orders table yet
+  const mockOrders: Order[] = [
+    {
+      id: '1',
+      customer_name: 'John Doe',
+      total_amount: 2500,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      items: [
+        { name: 'Tusker Beer', quantity: 2, price: 250 },
+        { name: 'Johnnie Walker Red', quantity: 1, price: 2000 }
+      ]
     }
-  };
-
-  const navigateToSettings = () => {
-    navigate('/settings');
-  };
-
-  const handleViewOrder = async (order) => {
-    if (!order?.id) return;
-    setCurrentOrder(order);
-    setViewOrderDialog(true);
-    
-    if (!order.seen) {
-      try {
-        await fetch(`http://localhost:8000/api/orders/${order.id}/`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ seen: true })
-        });
-        setOrderData(prev =>
-          prev.map(o => o.id === order.id ? { ...o, seen: true } : o)
-        );
-        setNotifications(prev =>
-          prev.map(n => 
-            n.message.includes(`Order #${order.id}`) ? { ...n, read: true } : n
-          )
-        );
-      } catch (error) {
-        console.error('Failed to mark order as seen:', error);
-      }
-    }
-  };
-
-  const handleViewProduct = (product) => {
-    setCurrentProduct(product);
-    setViewProductDialog(true);
-  };
-
-  const handleEditProduct = (product) => {
-    setCurrentProduct(product);
-    setEditProductDialog(true);
-  };
-
-  const handleOrderProduct = (product) => {
-    setCurrentProduct(product);
-    setOrderProductDialog(true);
-  };
-
-  const handleViewCustomer = (customer) => {
-    setCurrentCustomer(customer);
-    setViewCustomerDialog(true);
-  };
-
-  const handlePlaceOrder = () => {
-    setOrderProductDialog(false);
-    toast({
-      title: "Order Placed",
-      description: `Ordered ${currentProduct?.name} successfully.`,
-    });
-    setNotifications(prev => [
-      {
-        id: Date.now(),
-        message: `New stock order placed for ${currentProduct?.name}`,
-        read: false,
-        time: 'Just now'
-      },
-      ...prev
-    ]);
-  };
-
-  const handleSaveProduct = () => {
-    setEditProductDialog(false);
-    toast({
-      title: "Product Updated",
-      description: `${currentProduct?.name} has been updated successfully.`,
-    });
-  };
-
-  useEffect(() => {
-    const alerts = inventoryData
-      .filter(item => item.stock <= item.reorder)
-      .map(item => ({
-        id: item.id,
-        name: item.name,
-        stock: item.stock,
-        reorder: item.reorder
-      }));
-    setLowStockAlerts(alerts);
-  }, []);
-
-  if (!authenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Admin Dashboard</CardTitle>
-            <CardDescription className="text-center">Enter your password to access the admin area</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleLogin}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="Enter password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full"
-                />
-                {error && <p className="text-sm text-red-500">{error}</p>}
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full">Sign In</Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
-    );
-  }
-
-  const totalOrders = orderData.length;
-  const totalRevenue = orderData.reduce((sum, order) => sum + (order.total || 0), 0);
-  const totalVisitors = chartData[chartData.length - 1].visitors;
-  const totalInventoryValue = inventoryData.reduce((sum, item) => sum + (item.stock * item.price), 0);
-  const totalCustomers = customerData.length;
-  
-  const revenueYesterday = chartData[chartData.length - 2].revenue;
-  const revenueToday = chartData[chartData.length - 1].revenue;
-  const revenueChange = ((revenueToday - revenueYesterday) / revenueYesterday * 100).toFixed(1);
-  
-  const visitorsYesterday = chartData[chartData.length - 2].visitors;
-  const visitorsToday = chartData[chartData.length - 1].visitors;
-  const visitorsChange = ((visitorsToday - visitorsYesterday) / visitorsYesterday * 100).toFixed(1);
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  ];
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="relative">
-                <Inbox className="h-5 w-5 mr-2" />
-                <span>Notifications</span>
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="p-3 border-b flex justify-between items-center">
-                <h3 className="font-medium">Notifications</h3>
-                <Button variant="ghost" size="sm" onClick={markAllAsRead}>Mark all read</Button>
-              </div>
-              <div className="max-h-72 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No notifications
-                  </div>
-                ) : (
-                  notifications.map(notification => (
-                    <div 
-                      key={notification.id} 
-                      className={`p-3 border-b text-sm ${!notification.read ? 'bg-muted' : ''} hover:bg-muted/50 cursor-pointer`}
-                      onClick={() => {
-                        setNotifications(prev =>
-                          prev.map(n => 
-                            n.id === notification.id ? { ...n, read: true } : n
-                          )
-                        );
-                      }}
-                    >
-                      <div className="flex items-start gap-2">
-                        {!notification.read && (
-                          <div className="h-2 w-2 mt-1 rounded-full bg-blue-500" />
-                        )}
-                        <div>
-                          <p className="font-medium">{notification.message}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Button variant="outline" onClick={navigateToSettings}>
-            <Settings className="h-5 w-5 mr-2" />
-            Settings
-          </Button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{mockOrders.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{products.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{categories.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">KES {mockOrders.reduce((sum, order) => sum + order.total_amount, 0).toLocaleString()}</div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-primary" />
+        {/* Recent Orders */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">KES {totalRevenue}</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              {Number(revenueChange) >= 0 ? (
-                <>
-                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                  <span className="text-green-500">{revenueChange}%</span> from yesterday
-                </>
-              ) : (
-                <>
-                  <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
-                  <span className="text-red-500">{revenueChange}%</span> from yesterday
-                </>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ChartBar className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Last 7 days
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Visitors</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalVisitors}</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              {Number(visitorsChange) >= 0 ? (
-                <>
-                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                  <span className="text-green-500">{visitorsChange}%</span> from yesterday
-                </>
-              ) : (
-                <>
-                  <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
-                  <span className="text-red-500">{visitorsChange}%</span> from yesterday
-                </>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-            <Package className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              KES {totalInventoryValue.toFixed(2)}
-            </div>
-            {lowStockAlerts.length > 0 ? (
-              <p className="text-xs text-amber-600 flex items-center mt-1">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                {lowStockAlerts.length} items low on stock
-              </p>
-            ) : (
-              <p className="text-xs text-green-600 flex items-center mt-1">
-                All items adequately stocked
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {lowStockAlerts.some(item => item.stock <= item.reorder / 2) && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            You have {lowStockAlerts.filter(item => item.stock <= item.reorder / 2).length} items with critically low stock that require immediate attention!
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="w-full md:w-auto mb-2 flex-wrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue & Visitors</CardTitle>
-                <CardDescription>View visitor and revenue trends over the past week</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Legend />
-                    <Line yAxisId="left" type="monotone" dataKey="visitors" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#82ca9d" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales by Category</CardTitle>
-                <CardDescription>Distribution of sales across product categories</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={salesByCategoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {salesByCategoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mockOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">#{order.id}</TableCell>
+                    <TableCell>{order.customer_name}</TableCell>
+                    <TableCell>
+                      {order.items.map((item, index) => (
+                        <div key={index} className="text-sm">
+                          {item.name} x{item.quantity}
+                        </div>
                       ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value}%`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders by Day</CardTitle>
-              <CardDescription>Number of orders placed each day</CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="orders" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Low Stock Alerts</CardTitle>
-                <CardDescription>Items that need reordering soon</CardDescription>
-              </div>
-              {lowStockAlerts.length > 0 && (
-                <Button size="sm">Order inventory</Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {lowStockAlerts.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Current Stock</TableHead>
-                      <TableHead>Reorder Point</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lowStockAlerts.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{item.stock}</TableCell>
-                        <TableCell>{item.reorder}</TableCell>
-                        <TableCell>
-                          <Badge variant={item.stock <= item.reorder / 2 ? "destructive" : "secondary"}>
-                            {item.stock <= item.reorder / 2 ? 'Critical' : 'Low'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => handleOrderProduct(inventoryData.find(p => p.id === item.id))}>
-                            Order now
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Package className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                  <p>No low stock alerts at this time.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    </TableCell>
+                    <TableCell>KES {order.total_amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge variant={order.status === 'pending' ? 'secondary' : 'default'}>
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="orders">
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle>Recent Orders</CardTitle>
-                <CardDescription>Latest orders placed on your store</CardDescription>
-              </div>
-              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                <Select defaultValue="all" onValueChange={(value) => {
-                  // Implement filtering logic here if needed
-                }}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="initiated">Initiated</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="unpaid">Unpaid</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="icon">
-                  <FileText className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableCaption>List of recent orders</TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Delivery Area</TableHead>
-                      <TableHead>County</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orderData.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>
-                          {order.items?.length || 0} item{order.items?.length === 1 ? '' : 's'}
-                        </TableCell>
-                        <TableCell>{order.date}</TableCell>
-                        <TableCell>{order.delivery_area}</TableCell>
-                        <TableCell>{order.county}</TableCell>
-                        <TableCell>
-                          <Select
-                            value={order.status}
-                            onValueChange={(value) => updateOrderStatus(order.id, value)}
-                          >
-                            <SelectTrigger className="w-[120px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="initiated">Initiated</SelectItem>
-                              <SelectItem value="paid">Paid</SelectItem>
-                              <SelectItem value="unpaid">Unpaid</SelectItem>
-                              <SelectItem value="delivered">Delivered</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          KES {order.total}
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => handleViewOrder(order)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View details
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="inventory">
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle>Inventory Management</CardTitle>
-                <CardDescription>Monitor and manage product inventory</CardDescription>
-              </div>
-              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                <div className="relative w-full sm:w-auto flex-grow sm:flex-grow-0">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                  <Input placeholder="Search products..." className="pl-9 w-full" />
-                </div>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableCaption>Complete inventory list</TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {inventoryData.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">#{product.id}</TableCell>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell>{product.category}</TableCell>
-                        <TableCell>KES {product.price}</TableCell>
-                        <TableCell>{product.stock}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={
-                              product.stock > product.reorder ? "default" : 
-                              product.stock <= product.reorder / 2 ? "destructive" : "secondary"
-                            }
-                          >
-                            {product.stock > product.reorder ? 'In Stock' : 
-                             product.stock <= product.reorder / 2 ? 'Critical' : 'Low Stock'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="flex justify-end space-x-2">
-                          <Button variant="outline" size="sm" onClick={() => handleViewProduct(product)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleEditProduct(product)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleOrderProduct(product)}>
-                            <Archive className="h-4 w-4 mr-2" />
-                            Order
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="customers">
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle>Customer Management</CardTitle>
-                <CardDescription>View and manage customer information</CardDescription>
-              </div>
-              <div className="relative w-full sm:w-[250px]">
-                <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search customers..." className="pl-9 w-full" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableCaption>Complete customer list</TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>County</TableHead>
-                      <TableHead>Orders</TableHead>
-                      <TableHead>Last Order</TableHead>
-                      <TableHead>Total Spent</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {customerData.map((customer) => (
-                      <TableRow key={customer.id}>
-                        <TableCell className="font-medium">#{customer.id}</TableCell>
-                        <TableCell>{customer.name}</TableCell>
-                        <TableCell>{customer.email}</TableCell>
-                        <TableCell>{customer.phone}</TableCell>
-                        <TableCell>{customer.county}</TableCell>
-                        <TableCell>{customer.orders}</TableCell>
-                        <TableCell>{customer.lastOrder}</TableCell>
-                        <TableCell>KES {customer.totalSpent}</TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => handleViewCustomer(customer)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View profile
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* View Order Dialog */}
-      <Dialog open={viewOrderDialog} onOpenChange={setViewOrderDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Order #{currentOrder?.id}</DialogTitle>
-            <DialogDescription>
-              Order details and items
-            </DialogDescription>
-          </DialogHeader>
-          {currentOrder && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Customer</p>
-                  <p className="font-medium">{currentOrder.customer}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Date</p>
-                  <p className="font-medium">{currentOrder.date}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivery Area</p>
-                  <p className="font-medium">{currentOrder.delivery_area}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">County</p>
-                  <p className="font-medium">{currentOrder.county}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={currentOrder.status === 'delivered' ? "default" : "secondary"}>
-                    {currentOrder.status}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-medium">KES {currentOrder.total}</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">Order Items</h3>
-                <div className="bg-muted p-3 rounded-md">
-                  <ul className="list-disc pl-5 mt-2">
-                    {currentOrder.items?.length > 0 ? (
-                      currentOrder.items.map((item, index) => (
-                        <li key={index}>
-                          {item.name} × {item.quantity} @ KES {item.price}
-                        </li>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted">No items found in this order.</p>
-                    )}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter className="justify-between">
-            <Button variant="outline" onClick={() => setViewOrderDialog(false)}>Close</Button>
-            {currentOrder?.status !== 'delivered' && (
-              <Button
-                onClick={async () => {
-                  try {
-                    await updateOrderStatus(currentOrder.id, 'delivered');
-                    setViewOrderDialog(false);
-                    setCurrentOrder(prev => ({ ...prev, status: 'delivered' }));
-                  } catch (error) {
-                    console.error('Failed to mark as delivered:', error);
-                  }
-                }}
-              >
-                Mark as Delivered
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Product Dialog */}
-      <Dialog open={viewProductDialog} onOpenChange={setViewProductDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{currentProduct?.name}</DialogTitle>
-            <DialogDescription>
-              Product details and information
-            </DialogDescription>
-          </DialogHeader>
-          {currentProduct && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">ID</p>
-                  <p className="font-medium">#{currentProduct.id}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Category</p>
-                  <p className="font-medium">{currentProduct.category}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="font-medium">KES {currentProduct.price}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Stock</p>
-                  <p className="font-medium">{currentProduct.stock}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Reorder Point</p>
-                  <p className="font-medium">{currentProduct.reorder}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge 
-                    variant={
-                      currentProduct.stock > currentProduct.reorder ? "default" : 
-                      currentProduct.stock <= currentProduct.reorder / 2 ? "destructive" : "secondary"
-                    }
-                  >
-                    {currentProduct.stock > currentProduct.reorder ? 'In Stock' : 
-                     currentProduct.stock <= currentProduct.reorder / 2 ? 'Critical' : 'Low Stock'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewProductDialog(false)}>Close</Button>
-            <Button onClick={() => {
-              setViewProductDialog(false);
-              handleEditProduct(currentProduct);
-            }}>Edit Product</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Product Dialog */}
-      <Dialog open={editProductDialog} onOpenChange={setEditProductDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit {currentProduct?.name}</DialogTitle>
-            <DialogDescription>
-              Make changes to product information
-            </DialogDescription>
-          </DialogHeader>
-          {currentProduct && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="name">Product Name</label>
-                <Input id="name" value={currentProduct.name} onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="category">Category</label>
-                <Select 
-                  value={currentProduct.category}
-                  onValueChange={(value) => setCurrentProduct({...currentProduct, category: value})}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Spirits">Spirits</SelectItem>
-                    <SelectItem value="Beer">Beer</SelectItem>
-                    <SelectItem value="Wine">Wine</SelectItem>
-                    <SelectItem value="Non-Alcoholic">Non-Alcoholic</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="price">Price (KES)</label>
-                  <Input 
-                    id="price" 
-                    type="number" 
-                    value={currentProduct.price} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, price: parseFloat(e.target.value)})} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="stock">Stock Quantity</label>
-                  <Input 
-                    id="stock" 
-                    type="number" 
-                    value={currentProduct.stock} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})} 
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="reorder">Reorder Point</label>
-                <Input 
-                  id="reorder" 
-                  type="number" 
-                  value={currentProduct.reorder} 
-                  onChange={(e) => setCurrentProduct({...currentProduct, reorder: parseInt(e.target.value)})} 
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditProductDialog(false)}>Cancel</Button>
-            <Button onClick={handleSaveProduct}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Order Product Dialog */}
-      <Dialog open={orderProductDialog} onOpenChange={setOrderProductDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Order {currentProduct?.name}</DialogTitle>
-            <DialogDescription>
-              Place an order to restock this product
-            </DialogDescription>
-          </DialogHeader>
-          {currentProduct && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Stock</p>
-                  <p className="font-medium">{currentProduct.stock}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Reorder Point</p>
-                  <p className="font-medium">{currentProduct.reorder}</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="orderQuantity">Order Quantity</label>
-                <Input id="orderQuantity" type="number" defaultValue={currentProduct.reorder * 2} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="supplier">Supplier</label>
-                <Select defaultValue="supplier1">
-                  <SelectTrigger id="supplier">
-                    <SelectValue placeholder="Select supplier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="supplier1">Main Distributor Ltd.</SelectItem>
-                    <SelectItem value="supplier2">Wholesale Beverages Co.</SelectItem>
-                    <SelectItem value="supplier3">Direct from Manufacturer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="notes">Notes</label>
-                <Input id="notes" placeholder="Additional order instructions..." />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOrderProductDialog(false)}>Cancel</Button>
-            <Button onClick={handlePlaceOrder}>Place Order</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Customer Dialog */}
-      <Dialog open={viewCustomerDialog} onOpenChange={setViewCustomerDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Customer Profile: {currentCustomer?.name}</DialogTitle>
-            <DialogDescription>
-              Customer details and purchase history
-            </DialogDescription>
-          </DialogHeader>
-          {currentCustomer && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Customer ID</p>
-                  <p className="font-medium">#{currentCustomer.id}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{currentCustomer.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium">{currentCustomer.phone}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">County</p>
-                  <p className="font-medium">{currentCustomer.county}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Address</p>
-                  <p className="font-medium">{currentCustomer.address}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="font-medium">{currentCustomer.orders}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Last Order</p>
-                  <p className="font-medium">{currentCustomer.lastOrder}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="font-medium">KES {currentCustomer.totalSpent}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="font-medium">Recent Orders</h3>
-                <div className="bg-muted p-3 rounded-md">
-                  {orderData.filter(order => order.customer === currentCustomer.name).length > 0 ? (
-                    <ul className="mt-2 space-y-2">
-                      {orderData
-                        .filter(order => order.customer === currentCustomer.name)
-                        .slice(0, 3)
-                        .map(order => (
-                          <li key={order.id} className="flex justify-between">
-                            <span>#{order.id} - {order.date}</span>
-                            <span>KES {order.total}</span>
-                          </li>
-                        ))}
-                    </ul>
-                  ) : (
-                    <p>No recent orders found</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewCustomerDialog(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Products Management */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Products Management</CardTitle>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.slice(0, 10).map((product: any) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.category || 'Uncategorized'}</TableCell>
+                    <TableCell>KES {product.price?.toLocaleString() || 0}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
