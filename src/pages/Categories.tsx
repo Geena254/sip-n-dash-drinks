@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,9 +18,14 @@ const Categories: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const groupedDrinks = drinks.reduce<Record<string, Product[]>>((acc, drink) => {
-    const category = drink.category?.name ?? 'Uncategorized';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(drink);
+    const categoryName = typeof drink.category === 'object' && drink.category !== null 
+      ? drink.category.name 
+      : typeof drink.category === 'string' 
+        ? drink.category 
+        : 'Uncategorized';
+    
+    if (!acc[categoryName]) acc[categoryName] = [];
+    acc[categoryName].push(drink);
     return acc;
   }, {});
 
@@ -51,14 +57,14 @@ const Categories: React.FC = () => {
 
   const filteredDrinks = activeCategory
     ? categoryDrinks.filter(({ name, description }) =>
-        name.toLowerCase().includes(lowerSearch) ||
-        description.toLowerCase().includes(lowerSearch)
+        name?.toLowerCase().includes(lowerSearch) ||
+        description?.toLowerCase().includes(lowerSearch)
       )
     : Object.values(groupedDrinks)
         .flat()
         .filter(({ name, description }) =>
-          name.toLowerCase().includes(lowerSearch) ||
-          description.toLowerCase().includes(lowerSearch)
+          name?.toLowerCase().includes(lowerSearch) ||
+          description?.toLowerCase().includes(lowerSearch)
         );
 
   const totalPages = Math.ceil(filteredDrinks.length / ITEMS_PER_PAGE);
@@ -100,7 +106,7 @@ const Categories: React.FC = () => {
             <Card
               key={category.id}
               className={`cursor-pointer transition-all transform hover:-translate-y-1 ${isActive ? 'border-primary shadow-md' : ''}`}
-              onClick={() => handleCategoryClick(category.name)}
+              onClick={() => handleCategoryClick(category.name || '')}
             >
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-semibold">{category.name}</CardTitle>
@@ -109,7 +115,7 @@ const Categories: React.FC = () => {
                 <p className="text-sm text-muted-foreground">{category.description}</p>
               </CardContent>
               <CardFooter className="pt-0 flex justify-between">
-                <Badge variant={isActive ? "default" : "outline"}>{category.product_count} items</Badge>
+                <Badge variant={isActive ? "default" : "outline"}>{category.product_count || 0} items</Badge>
                 <Button variant={isActive ? "secondary" : "ghost"} size="sm" className="text-xs">
                   {isActive ? 'Selected' : 'View All'}
                 </Button>
@@ -138,9 +144,10 @@ const Categories: React.FC = () => {
                 key={drink.id}
                 drink={{
                   ...drink,
+                  image: drink.image_url || '/placeholder.svg',
                   category:
                     typeof drink.category === 'object' && drink.category !== null
-                      ? drink.category.name
+                      ? drink.category.name || 'Uncategorized'
                       : typeof drink.category === 'string'
                         ? drink.category
                         : 'Uncategorized'

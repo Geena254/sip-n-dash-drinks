@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const Navbar: React.FC = () => {
-  const { cartCount } = useCart();
+  const { itemCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAdminLink, setShowAdminLink] = useState(false);
   const [logoHoverTimer, setLogoHoverTimer] = useState<NodeJS.Timeout | null>(null);
@@ -95,9 +96,9 @@ const Navbar: React.FC = () => {
             <Link to="/cart" className="ml-1">
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />
-                {cartCount > 0 && (
+                {itemCount > 0 && (
                   <Badge variant="default" className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs">
-                    {cartCount}
+                    {itemCount}
                   </Badge>
                 )}
               </Button>
@@ -108,9 +109,9 @@ const Navbar: React.FC = () => {
             <Link to="/cart" className="mr-2">
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />
-                {cartCount > 0 && (
+                {itemCount > 0 && (
                   <Badge variant="default" className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs">
-                    {cartCount}
+                    {itemCount}
                   </Badge>
                 )}
               </Button>

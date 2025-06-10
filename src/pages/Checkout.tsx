@@ -73,11 +73,11 @@ const Checkout = () => {
     }));
   };
 
-  const handleLocationSelect = (location: { lat: number; lng: number; address: string }) => {
+  const handleLocationSelect = (address: string, lat: number, lng: number) => {
     setCustomerInfo(prev => ({
       ...prev,
-      location,
-      address: location.address
+      location: { lat, lng, address },
+      address
     }));
   };
 

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
 const Cart: React.FC = () => {
-  const { items, cartTotal, clearCart } = useCart();
+  const { items, total, clearCart } = useCart();
 
   if (items.length === 0) {
     return (
@@ -47,7 +47,7 @@ const Cart: React.FC = () => {
         <div className="border-t mt-4 pt-4">
           <div className="flex justify-between items-center mb-6">
             <span className="font-medium text-lg">Subtotal</span>
-            <span className="font-bold text-xl">KES {cartTotal}</span>
+            <span className="font-bold text-xl">KES {total}</span>
           </div>
           
           <div className="flex flex-col gap-3">
