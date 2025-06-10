@@ -15,6 +15,20 @@ interface CartItemProps {
 const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, options }) => {
   const { updateQuantity, removeFromCart } = useCart();
 
+  const handleDecreaseQuantity = () => {
+    if (quantity > 1) {
+      updateQuantity(id, quantity - 1);
+    }
+  };
+
+  const handleIncreaseQuantity = () => {
+    updateQuantity(id, quantity + 1);
+  };
+
+  const handleRemoveItem = () => {
+    removeFromCart(id);
+  };
+
   return (
     <div className="flex items-center py-4 border-b last:border-b-0">
       <div className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden">
@@ -23,6 +37,9 @@ const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, o
 
       <div className="ml-4 flex-1">
         <h3 className="font-medium">{name}</h3>
+        {options && (
+          <p className="text-sm text-gray-600 mt-1">{options}</p>
+        )}
         <div className="flex justify-between items-center mt-2">
           <span className="font-bold">KES {price.toLocaleString('en-KE')}</span>
 
@@ -31,7 +48,7 @@ const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, o
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => updateQuantity(id, quantity - 1)}
+              onClick={handleDecreaseQuantity}
             >
               <Minus size={14} />
             </Button>
@@ -42,7 +59,7 @@ const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, o
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => updateQuantity(id, quantity + 1)}
+              onClick={handleIncreaseQuantity}
             >
               <Plus size={14} />
             </Button>
@@ -51,7 +68,7 @@ const CartItem: React.FC<CartItemProps> = ({ id, name, price, image, quantity, o
               variant="ghost"
               size="icon"
               className="h-8 w-8 ml-2 text-red-500"
-              onClick={() => removeFromCart(id)}
+              onClick={handleRemoveItem}
             >
               <Trash2 size={16} />
             </Button>

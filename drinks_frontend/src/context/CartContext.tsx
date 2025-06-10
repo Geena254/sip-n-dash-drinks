@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface DrinkItem {
@@ -12,6 +11,7 @@ export interface DrinkItem {
 
 export interface CartItem extends DrinkItem {
   quantity: number;
+  options?: string | null;
 }
 
 interface CartContextType {
@@ -41,19 +41,25 @@ interface CartProviderProps {
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const addToCart = (drink: DrinkItem) => {
+  const addToCart = (drink: DrinkItem, options?: string) => {
     setItems(currentItems => {
-      const existingItem = currentItems.find(item => item.id === drink.id);
+      const existingItem = currentItems.find(item => 
+        item.id === drink.id && item.options === options
+      );
       
       if (existingItem) {
         return currentItems.map(item =>
-          item.id === drink.id
+          item.id === drink.id && item.options === options
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       
-      return [...currentItems, { ...drink, quantity: 1 }];
+      return [...currentItems, { 
+        ...drink, 
+        quantity: 1, 
+        options: options || null 
+      }];
     });
   };
 

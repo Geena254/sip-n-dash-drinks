@@ -24,10 +24,10 @@ interface LocationPickerProps {
 // Define the map container style
 const mapContainerStyle = {
   width: '100%',
-  height: '350px'  // Increased height for better visibility
+  height: '350px'
 };
 
-// Default Google Maps API Key - replace with your own or use the prop
+// Default Google Maps API Key
 const DEFAULT_GOOGLE_MAPS_API_KEY = 'AIzaSyB-lDSWjVUoIUnW7OqLXkAZAWnzemuGbP4';
 
 const LocationPicker: React.FC<LocationPickerProps> = ({ 

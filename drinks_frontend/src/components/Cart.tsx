@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -39,7 +38,7 @@ const Cart: React.FC = () => {
               name={item.name} 
               price={item.price} 
               image={item.image} 
-              quantity={item.quantity} 
+              quantity={item.quantity}
             />
           ))}
         </div>
