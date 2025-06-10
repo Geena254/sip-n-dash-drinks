@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,89 +8,69 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Lottie from "lottie-react";
 import devAnimation from "../images/delivery man.json";
-import { supabase } from '@/service/supabaseService';
-
-interface Category {
-  id: number;
-  name: string;
-  product_count: number;
-  description: string;
-}
-
-interface Drink {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string;
-  category: string;
-  category_id: number;
-}
+import { supabaseAPI, Category, Product } from '@/service/supabaseService';
 
 interface Offer {
   id: number;
   title: string;
   description: string;
-  // category: string;
   discount: string;
   code: string;
 }
 
 const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [drinks, setDrinks] = useState<Drink[]>([]);
+  const [drinks, setDrinks] = useState<Product[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch offers from Supabase
-  const fetchOffers = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [categoriesData, drinksData, offersData] = await Promise.all([
+          supabaseAPI.getCategories(),
+          supabaseAPI.getProducts(),
+          fetchOffers()
+        ]);
+        
+        setCategories(categoriesData.slice(0, 4));
+        setDrinks(drinksData.slice(0, 6));
+        setOffers(offersData.slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const fetchOffers = async (): Promise<Offer[]> => {
     try {
-      const { data, error } = await supabase
-        .from('offers')
+      const { data, error } = await supabaseAPI.supabase
+        .from('Offers')
         .select('*')
         .limit(3);
 
       if (error) throw error;
-      if (data) setOffers(data);
+      return data || [];
     } catch (err) {
-      console.error('Error loading Offers:', err);
+      console.error('Error loading offers:', err);
+      return [];
     }
   };
 
-  // Fetch drinks from Supabase
-  const fetchDrinks = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, name, description, price, image_url, category, category_id')
-        .limit(6);
-
-      if (error) throw error;
-      if (data) setDrinks(data);
-    } catch (err) {
-      console.error('Error loading drinks:', err);
-    }
-  };
-
-  // Fetch drink categories from Supabase
-  const fetchDrinkCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, product_count, description')
-        .limit(10);
-
-      if (error) throw error;
-      if (data) setCategories(data);
-    } catch (err) {
-      console.error('Error loading categories:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchOffers();
-    fetchDrinks();
-    fetchDrinkCategories();
-  }, []);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -142,28 +123,34 @@ const Index = () => {
             View All Categories
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category) => (
-            <Link
-              to={`/categories`}
-              state={{ category: category.name }}
-              key={category.id}
-              className="group"
-            >
-              <Card className="h-full overflow-hidden border-0 shadow-md transition-all group-hover:-translate-y-1 group-hover:shadow-lg">
-                <CardContent className="p-6 bg-rose-50">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-medium text-lg bg-rose-50">{category.name}</h3>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <p className="text-sm text-muted-foreground">{category.product_count} items</p>
-                    <span className="text-primary text-sm font-medium">Browse →</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((category) => (
+              <Link
+                to="/categories"
+                state={{ category: category.name }}
+                key={category.id}
+                className="group"
+              >
+                <Card className="h-full overflow-hidden border-0 shadow-md transition-all group-hover:-translate-y-1 group-hover:shadow-lg">
+                  <CardContent className="p-6 bg-rose-50">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-medium text-lg">{category.name}</h3>
+                    </div>
+                    <div className="flex items-end justify-between">
+                      <p className="text-sm text-muted-foreground">{category.product_count || 0} items</p>
+                      <span className="text-primary text-sm font-medium">Browse →</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No categories available at the moment.</p>
+          </div>
+        )}
       </div>
 
       {/* Featured drinks section */}
@@ -176,17 +163,28 @@ const Index = () => {
             </Link>
           </div>
 
-          <div className="drink-card-container">
-            {drinks.map((drink) => (
-              <DrinkCard
-                key={drink.id}
-                drink={{
-                  ...drink,
-                  image: drink.image_url,
-                }}
-              />
-            ))}
-          </div>
+          {drinks.length > 0 ? (
+            <div className="drink-card-container">
+              {drinks.map((drink) => (
+                <DrinkCard
+                  key={drink.id}
+                  drink={{
+                    ...drink,
+                    image: drink.image_url || '/placeholder.svg',
+                    category: typeof drink.category === 'object' && drink.category !== null 
+                      ? drink.category.name || 'Uncategorized'
+                      : typeof drink.category === 'string' 
+                        ? drink.category 
+                        : 'Uncategorized'
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No featured drinks available at the moment.</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -199,27 +197,33 @@ const Index = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {offers.map((offer) => (
-            <Card
-              key={offer.id}
-              className="overflow-hidden border-0 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="bg-gradient-to-br from-rose-100 to-pink-200 p-6 flex flex-col justify-between min-h-[180px]">
-                <Percent className="h-12 w-12 text-white/40" />
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{offer.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">Use code: <span className="font-medium">{offer.code}</span></p>
-                  <Link to="/offers">
-                    <Button className="mt-4" variant="outline" size="sm">
-                      Claim Offer
-                    </Button>
-                  </Link>
+        {offers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {offers.map((offer) => (
+              <Card
+                key={offer.id}
+                className="overflow-hidden border-0 shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className="bg-gradient-to-br from-rose-100 to-pink-200 p-6 flex flex-col justify-between min-h-[180px]">
+                  <Percent className="h-12 w-12 text-white/40" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">{offer.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">Use code: <span className="font-medium">{offer.code}</span></p>
+                    <Link to="/offers">
+                      <Button className="mt-4" variant="outline" size="sm">
+                        Claim Offer
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No special offers available at the moment.</p>
+          </div>
+        )}
       </div>
 
       {/* Fast delivery section */}

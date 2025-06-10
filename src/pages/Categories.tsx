@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingBag, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import DrinkCard from '@/components/DrinkCard';
 import { supabaseAPI, Category, Product } from '@/service/supabaseService';
 
@@ -31,21 +32,42 @@ const Categories: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [fetchedDrinks, fetchedCategories] = await Promise.all([
-        supabaseAPI.getProducts(),
-        supabaseAPI.getCategories()
-      ]);
-      setDrinks(fetchedDrinks);
-      setCategories(fetchedCategories);
+      try {
+        const [fetchedDrinks, fetchedCategories] = await Promise.all([
+          supabaseAPI.getProducts(),
+          supabaseAPI.getCategories()
+        ]);
+        
+        setDrinks(fetchedDrinks);
+        
+        // Calculate product count for each category
+        const categoriesWithCount = fetchedCategories.map(category => {
+          const productCount = fetchedDrinks.filter(drink => {
+            const drinkCategory = typeof drink.category === 'object' && drink.category !== null 
+              ? drink.category.name 
+              : typeof drink.category === 'string' 
+                ? drink.category 
+                : 'Uncategorized';
+            return drinkCategory === category.name;
+          }).length;
+          
+          return {
+            ...category,
+            product_count: productCount
+          };
+        });
+        
+        setCategories(categoriesWithCount);
+      } catch (err) {
+        console.error("🔥 Error fetching data:", err);
+      }
     };
 
-    fetchData().catch((err) => {
-      console.error("🔥 Error fetching data:", err.message);
-    });
+    fetchData();
   }, []);
 
   const handleCategoryClick = (categoryName: string) => {
-    setCurrentPage(1); // reset pagination when category changes
+    setCurrentPage(1);
     setActiveCategory(activeCategory === categoryName ? null : categoryName);
   };
 
@@ -73,6 +95,91 @@ const Categories: React.FC = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const renderPaginationDots = () => {
+    const dots = [];
+    const maxVisibleDots = 5;
+    
+    if (totalPages <= maxVisibleDots) {
+      for (let i = 1; i <= totalPages; i++) {
+        dots.push(
+          <PaginationItem key={i}>
+            <PaginationLink 
+              onClick={() => setCurrentPage(i)}
+              isActive={currentPage === i}
+              className="cursor-pointer"
+            >
+              •
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Always show first dot
+      dots.push(
+        <PaginationItem key={1}>
+          <PaginationLink 
+            onClick={() => setCurrentPage(1)}
+            isActive={currentPage === 1}
+            className="cursor-pointer"
+          >
+            •
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Show ellipsis if current page is far from start
+      if (currentPage > 3) {
+        dots.push(
+          <PaginationItem key="ellipsis1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Show dots around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      
+      for (let i = start; i <= end; i++) {
+        dots.push(
+          <PaginationItem key={i}>
+            <PaginationLink 
+              onClick={() => setCurrentPage(i)}
+              isActive={currentPage === i}
+              className="cursor-pointer"
+            >
+              •
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Show ellipsis if current page is far from end
+      if (currentPage < totalPages - 2) {
+        dots.push(
+          <PaginationItem key="ellipsis2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Always show last dot
+      dots.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink 
+            onClick={() => setCurrentPage(totalPages)}
+            isActive={currentPage === totalPages}
+            className="cursor-pointer"
+          >
+            •
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    return dots;
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
       <div className="mb-8 text-center">
@@ -91,7 +198,7 @@ const Categories: React.FC = () => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1); // reset pagination on search
+              setCurrentPage(1);
             }}
             placeholder="Search drinks by name or description..."
             className="pl-10"
@@ -166,25 +273,25 @@ const Categories: React.FC = () => {
         )}
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 pt-6">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              
+              {renderPaginationDots()}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         )}
       </div>
     </div>
