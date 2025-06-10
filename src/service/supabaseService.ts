@@ -39,6 +39,15 @@ export type CocktailRecipe = {
   created_at: string
 }
 
+export type Offer = {
+  id: number
+  title: string
+  description: string
+  discount: string
+  code: string
+  end_date: string
+}
+
 export const supabaseAPI = {
   async getCategories(): Promise<Category[]> {
     const { data, error } = await supabase
@@ -125,6 +134,19 @@ export const supabaseAPI = {
 
     if (error) {
       console.error('Error fetching cocktail recipes:', error);
+      throw error;
+    }
+    return data ?? []
+  },
+
+  async getOffers(): Promise<Offer[]> {
+    const { data, error } = await supabase
+      .from('Offers')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching offers:', error);
       throw error;
     }
     return data ?? []

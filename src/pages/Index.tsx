@@ -8,16 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Lottie from "lottie-react";
 import devAnimation from "../images/delivery man.json";
-import { supabaseAPI, Category, Product } from '@/service/supabaseService';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Offer {
-  id: number;
-  title: string;
-  description: string;
-  discount: string;
-  code: string;
-}
+import { supabaseAPI, Category, Product, Offer } from '@/service/supabaseService';
 
 const Index = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -31,7 +22,7 @@ const Index = () => {
         const [categoriesData, drinksData, offersData] = await Promise.all([
           supabaseAPI.getCategories(),
           supabaseAPI.getProducts(),
-          fetchOffers()
+          supabaseAPI.getOffers()
         ]);
         
         // Calculate product count for each category
@@ -58,21 +49,6 @@ const Index = () => {
 
     fetchData();
   }, []);
-
-  const fetchOffers = async (): Promise<Offer[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('Offers')
-        .select('*')
-        .limit(3);
-
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.error('Error loading offers:', err);
-      return [];
-    }
-  };
 
   if (loading) {
     return (
