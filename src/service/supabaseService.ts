@@ -63,7 +63,6 @@ export const supabaseAPI = {
   },
 
   async getProducts(): Promise<Product[]> {
-    // First try the simple query to get all products
     const { data: products, error } = await supabase
       .from('Products')
       .select('*')
@@ -76,46 +75,79 @@ export const supabaseAPI = {
 
     if (!products) return [];
 
-    // Get all categories to map names
     const { data: categories } = await supabase
       .from('Categories')
       .select('*');
 
-    // Map category names to products
     const productsWithCategories = products.map(product => {
-      const category = categories?.find(cat => cat.id === product.category_id);
+      // First try to match by category_id
+      let category = categories?.find(cat => cat.id === product.category_id);
+      
+      // If no match by ID, try to match by name (case-insensitive)
+      if (!category && product.category) {
+        category = categories?.find(cat => 
+          cat.name?.toLowerCase() === product.category?.toLowerCase()
+        );
+      }
+      
+      // If still no match, try partial matching for common variations
+      if (!category && product.category) {
+        const productCat = product.category.toLowerCase();
+        category = categories?.find(cat => {
+          const catName = cat.name?.toLowerCase() || '';
+          return catName.includes(productCat) || productCat.includes(catName);
+        });
+      }
+
       return {
         ...product,
-        category: category ? { id: category.id, name: category.name, description: category.description } : 'Uncategorized'
+        category: category ? { 
+          id: category.id, 
+          name: category.name, 
+          description: category.description 
+        } : product.category || 'Uncategorized'
       };
     });
 
+    console.log("Products with mapped categories:", productsWithCategories);
     return productsWithCategories;
   },
 
   async getProductsByCategory(categoryId: number): Promise<Product[]> {
-    const { data: products, error } = await supabase
-      .from('Products')
-      .select('*')
-      .eq('category_id', categoryId)
-
-    if (error) {
-      console.error('Error fetching products by category:', error);
-      throw error;
-    }
-
-    if (!products) return [];
-
-    // Get category details
+    // Get the category details first
     const { data: category } = await supabase
       .from('Categories')
       .select('*')
       .eq('id', categoryId)
       .single();
 
+    if (!category) return [];
+
+    // Try to find products by category_id first
+    let { data: products } = await supabase
+      .from('Products')
+      .select('*')
+      .eq('category_id', categoryId);
+
+    // If no products found by ID, try by category name (case-insensitive)
+    if (!products || products.length === 0) {
+      const { data: productsByName } = await supabase
+        .from('Products')
+        .select('*')
+        .ilike('category', `%${category.name}%`);
+      
+      products = productsByName || [];
+    }
+
+    if (!products) return [];
+
     return products.map(product => ({
       ...product,
-      category: category ? { id: category.id, name: category.name, description: category.description } : 'Uncategorized'
+      category: { 
+        id: category.id, 
+        name: category.name, 
+        description: category.description 
+      }
     }));
   },
 
