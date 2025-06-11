@@ -101,28 +101,6 @@ const Navbar: React.FC = () => {
               Delivery Services
             </Link>
 
-            {/* Add Auth Links */}
-            {user ? (
-              <div className="flex items-center space-x-2 ml-4">
-                <Link to="/admin" className="text-gray-700 hover:text-primary transition-colors flex items-center gap-1">
-                  <User size={16} />
-                  Admin
-                </Link>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => signOut()}
-                  className="text-gray-700"
-                >
-                  Log Out
-                </Button>
-              </div>
-            ) : (
-              <Link to="/auth" className="ml-4 text-gray-700 hover:text-primary transition-colors">
-                Log In
-              </Link>
-            )}
-
             <Link to="/cart" className="ml-1">
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />

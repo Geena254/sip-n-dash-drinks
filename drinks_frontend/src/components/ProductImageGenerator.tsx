@@ -9,7 +9,11 @@ import { useToast } from '@/hooks/use-toast';
 interface Product {
   id: number;
   name: string;
-  category: string;
+  category: {
+    id: number;
+    name: string;
+    description?: string;
+  } | null;
   description?: string;
   image_url?: string;
 }
@@ -125,7 +129,7 @@ const ProductImageGenerator: React.FC<ProductImageGeneratorProps> = ({
             <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex-1">
                 <h4 className="font-medium">{product.name}</h4>
-                <p className="text-sm text-muted-foreground">{product.category}</p>
+                <p className="text-sm text-muted-foreground">{product.category?.name || 'Uncategorized'}</p>
               </div>
               <div className="flex items-center gap-2">
                 {generatedIds.has(product.id) && (

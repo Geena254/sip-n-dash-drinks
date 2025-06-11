@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabaseAPI } from '@/service/supabaseService';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useAuth } from '@/context/authContext';
+import { useAuth } from '@/context/AuthContext';
 import ProductImageGenerator from '@/components/ProductImageGenerator';
 
 interface Order {
@@ -49,6 +49,28 @@ const Admin = () => {
   const mockOrders: Order[] = [
     {
       id: '1',
+      customer_name: 'John Doe',
+      total_amount: 2500,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      items: [
+        { name: 'Tusker Beer', quantity: 2, price: 250 },
+        { name: 'Johnnie Walker Red', quantity: 1, price: 2000 }
+      ]
+    },
+    {
+      id: '2',
+      customer_name: 'John Doe',
+      total_amount: 2500,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      items: [
+        { name: 'Tusker Beer', quantity: 2, price: 250 },
+        { name: 'Johnnie Walker Red', quantity: 1, price: 2000 }
+      ]
+    },
+    {
+      id: '3',
       customer_name: 'John Doe',
       total_amount: 2500,
       status: 'pending',
@@ -179,7 +201,7 @@ const Admin = () => {
                 {products.slice(0, 10).map((product: any) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category || 'Uncategorized'}</TableCell>
+                    <TableCell>{product.category?.name || 'Uncategorized'}</TableCell>
                     <TableCell>KES {product.price?.toLocaleString() || 0}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
