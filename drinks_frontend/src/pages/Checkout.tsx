@@ -32,7 +32,9 @@ const Checkout: React.FC = () => {
     latitude: 0,
     longitude: 0,
     deliveryArea: '',
-    addressInputType: 'manual' as 'manual' | 'picker'
+    addressInputType: 'manual' as 'manual' | 'picker',
+    placeName: '',
+    paymentMethods: 'mpesa' as 'mpesa' | 'card' | 'paypal',
   });
   
   const [paymentDetails, setPaymentDetails] = useState({
@@ -69,9 +71,10 @@ const Checkout: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLocationSelect = (address: string, lat: number, lng: number) => {
+  const handleLocationSelect = (placeName: string, address: string, lat?: number, lng?: number) => {
     setFormData(prev => ({
       ...prev,
+      placeName,
       address,
       latitude: lat,
       longitude: lng
@@ -208,36 +211,52 @@ const Checkout: React.FC = () => {
         status: 'pending'
       };
 
+      // 2. Save order locally
+      const pastOrders = localStorage.getItem('pastOrders');
+      localStorage.setItem('pastOrders', JSON.stringify([
+        ...(pastOrders ? JSON.parse(pastOrders) : []),
+        orderData
+      ]));
+
+      // 3. Queue emails (non-blocking)
+      const emailPromises = [
+        fetch('/api/send-order-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emailType: 'business',
+            orderData
+          }),
+        })
+      ];
+
+      if (formData.email) {
+        emailPromises.push(
+          fetch('/api/send-order-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              emailType: 'customer',
+              orderData
+            }),
+          })
+        );
+      }
+
       // Clear cart and navigate
       clearCart();
       navigate('/confirmation', {
-        state: orderData,
+        state: {
+          ...orderData,
+          emailJobs: await Promise.all(emailPromises.map(p => p.then(r => r.json()))),
+        },
         replace: true
       });
 
-      // Send emails in background
-      setTimeout(async () => {
-        try {
-          await Promise.all([
-            sendOrderEmail('business', orderData),
-            formData.email && sendOrderEmail('customer', orderData)
-          ]);
-        } catch (emailError) {
-          console.error('Email delivery failed:', emailError);
-        }
-      }, 0);
-
-      toast({
-        title: "Order placed successfully!",
-        description: "You'll receive a confirmation shortly.",
-        variant: "default"
-      });
-
     } catch (error) {
-      console.error('Checkout processing error:', error);
       toast({
-        title: "Order failed",
-        description: "There was an error processing your order. Please try again.",
+        title: "Order processing error",
+        description: "Your order was saved but email delivery failed",
         variant: "destructive"
       });
     } finally {
@@ -339,10 +358,18 @@ const Checkout: React.FC = () => {
                 </div>
                 
                 {formData.addressInputType === 'picker' ? (
-                  <LocationPicker
-                    onLocationSelect={handleLocationSelect}
-                    initialAddress={formData.address}
-                  />
+                  <>
+                    <LocationPicker
+                      onLocationSelect={handleLocationSelect}
+                      initialAddress={formData.address}
+                    />
+                    {formData.address && (
+                      <div className="mt-2 p-2 border rounded bg-gray-50">
+                        {formData.placeName && <p><strong>Place:</strong> {formData.placeName}</p>}
+                        <p><strong>Address:</strong> {formData.address}</p>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <Input
                     name="address"

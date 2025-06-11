@@ -6,23 +6,42 @@ import { CheckCircle, ArrowLeft } from 'lucide-react';
 
 const Confirmation: React.FC = () => {
   const { state } = useLocation();
-  const [emailStatus, setEmailStatus] = useState<'pending' | 'failed' | 'success'>('pending');
+  const [emailStatus, setEmailStatus] = useState<{
+    business: 'pending' | 'sent' | 'failed';
+    customer?: 'pending' | 'sent' | 'failed';
+  }>({ 
+    business: 'pending',
+    customer: state?.customerEmail ? 'pending' : undefined
+  });
 
   useEffect(() => {
-    const confirmEmailSent = async () => {
-      // Optionally check backend, or just simulate:
-      if (!state?.customerEmail) return;
+    if (!state?.emailJobs) return;
 
-      const res = await fetch('/api/send-order-email-status?orderId=' + state.orderId); // optional future improvement
-      if (!res.ok) {
-        setEmailStatus('failed');
-      } else {
-        setEmailStatus('success');
+    // Check email status periodically
+    const interval = setInterval(async () => {
+      try {
+        const results = await Promise.all(
+          state.emailJobs.map((job: any) => 
+            fetch(`/api/check-email-status?jobId=${job.jobId}`)
+              .then(res => res.json())
+          )
+        );
+
+        setEmailStatus({
+          business: results[0].delivered ? 'sent' : 'failed',
+          customer: results[1]?.delivered ? 'sent' : results[1] ? 'failed' : undefined
+        });
+
+        if (results.every(r => r.delivered)) {
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error('Status check failed:', error);
       }
-    };
+    }, 5000);
 
-    confirmEmailSent();
-  }, []);
+    return () => clearInterval(interval);
+  }, [state]);
   
   // If accessed directly without state, redirect to home
   if (!state?.orderId) return <Navigate to="/" replace />;
@@ -56,7 +75,7 @@ const Confirmation: React.FC = () => {
               We've sent a confirmation email with your order details.
             </p>
 
-            {emailStatus === 'failed' && (
+            {(emailStatus.business === 'failed' || emailStatus.customer === 'failed') && (
               <div className="bg-yellow-100 p-4 rounded mb-4 text-yellow-700 text-sm">
                 We couldn’t confirm your email was delivered. Here’s a copy of your order:
                 <ul className="mt-2 list-disc list-inside">

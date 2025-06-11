@@ -12,21 +12,13 @@ import { toast } from "sonner";
 
 const AgeVerificationDialog = () => {
   const [open, setOpen] = useState(false);
-  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    // Check if user has already verified age
-    const isVerified = localStorage.getItem("age-verified") === "true";
-    if (isVerified) {
-      setVerified(true);
-    } else {
-      setOpen(true);
-    }
+    // Always show the dialog when component mounts
+    setOpen(true);
   }, []);
 
   const handleVerify = () => {
-    localStorage.setItem("age-verified", "true");
-    setVerified(true);
     setOpen(false);
     toast.success("Welcome to Booze To You!");
   };
@@ -38,7 +30,7 @@ const AgeVerificationDialog = () => {
   };
 
   return (
-    <Dialog open={open && !verified} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Age Verification Required</DialogTitle>

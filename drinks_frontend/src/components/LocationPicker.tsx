@@ -15,7 +15,7 @@ const defaultCenter = {
 const libraries = ['places', 'geometry'] as ("places" | "geometry")[];
 
 interface LocationPickerProps {
-  onLocationSelect: (address: string, lat: number, lng: number) => void;
+  onLocationSelect: (placeName: string, address: string, lat: number, lng: number) => void;
   initialAddress?: string;
   initialCoordinates?: { lat: number; lng: number };
   apiKey?: string;
@@ -28,7 +28,7 @@ const mapContainerStyle = {
 };
 
 // Default Google Maps API Key
-const DEFAULT_GOOGLE_MAPS_API_KEY = 'AIzaSyB-lDSWjVUoIUnW7OqLXkAZAWnzemuGbP4';
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const LocationPicker: React.FC<LocationPickerProps> = ({ 
   onLocationSelect, 
@@ -36,7 +36,8 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   initialCoordinates,
   apiKey
 }) => {
-  const [address, setAddress] = useState(initialAddress || '');
+  const [placeName, setPlaceName] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
   const [markerPosition, setMarkerPosition] = useState(initialCoordinates || defaultCenter);
   const [isAddressSearching, setIsAddressSearching] = useState(false);
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
@@ -52,7 +53,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   // Load Google Maps JS API with necessary libraries
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey || DEFAULT_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: apiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries
   });
 
@@ -78,36 +79,62 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
   // Get user's current location with improved error handling and timeout
   const reverseGeocode = useCallback((lat: number, lng: number) => {
-    if (!geocoderRef.current) {
-      setIsGettingCurrentLocation(false);
-      return;
-    }
-    
-    geocoderRef.current.geocode(
-      { location: { lat, lng } },
-      (results, status) => {
-        setIsGettingCurrentLocation(false);
+    if (placesServiceRef.current) {
+      const request = {
+        location: new google.maps.LatLng(lat, lng),
+        radius: 50 // smaller radius for more precise place
+      };
         
-        if (status === "OK" && results && results[0]) {
-          const formattedAddress = results[0].formatted_address;
-          setAddress(formattedAddress);
-          onLocationSelect(formattedAddress, lat, lng);
-          
-          toast({
-            title: "Location Updated",
-            description: "Your location has been set successfully",
+      placesServiceRef.current.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          // Prefer the first result (closest)
+          const placeId = results[0].place_id;
+          placesServiceRef.current!.getDetails({ placeId }, (place, placeStatus) => {
+            if (placeStatus === google.maps.places.PlacesServiceStatus.OK && place) {
+              setPlaceName(place.name || "");
+              setAddress(place.formatted_address || "");
+              onLocationSelect(place.name || "", place.formatted_address || "", lat, lng);
+              toast({
+                title: "Location Updated",
+                description: "Precise delivery address selected.",
+              });
+            } else {
+              // Fallback to geocoder
+              fallbackGeocode(lat, lng);
+            }
           });
         } else {
-          toast({
-            title: "Address Lookup Failed",
-            description: "We found your location but couldn't determine the address. You can enter it manually.",
-            variant: "destructive"
-          });
-          onLocationSelect("Unknown Address", lat, lng);
+          // Fallback to geocoder
+          fallbackGeocode(lat, lng);
         }
-      }
-    );
+      });
+    } else {
+      fallbackGeocode(lat, lng);
+    }
   }, [onLocationSelect, toast]);
+
+  const fallbackGeocode = (lat: number, lng: number) => {
+    if (!geocoderRef.current) return;
+    geocoderRef.current.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === "OK" && results && results[0]) {
+        const formattedAddress = results[0].formatted_address;
+        setPlaceName("Unnamed Location");
+        setAddress(formattedAddress);
+        onLocationSelect("Unnamed Location", formattedAddress, lat, lng);
+        toast({
+          title: "Location Updated",
+          description: "Fallback geocoding used.",
+        });
+      } else {
+        toast({
+          title: "Address Lookup Failed",
+          description: "Could not determine a specific address.",
+          variant: "destructive"
+        });
+        onLocationSelect("Unknown Address", "Unknown Address", lat, lng);
+      }
+    });
+  };
 
   const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -163,7 +190,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                   if (placeStatus === google.maps.places.PlacesServiceStatus.OK && placeResult) {
                     const formattedAddress = placeResult.formatted_address || '';
                     setAddress(formattedAddress);
-                    onLocationSelect(formattedAddress, lat, lng);
+                    onLocationSelect("Current Location", formattedAddress, lat, lng);
                     
                     toast({
                       title: "Location Updated",
@@ -189,7 +216,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             title: "Location Found",
             description: "We found your coordinates but couldn't determine the address.",
           });
-          onLocationSelect("Unknown Address", lat, lng);
+          onLocationSelect("Unknown Place", "Unknown Address", lat, lng);
         }
       },
       (error) => {
@@ -241,40 +268,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       const lat = e.latLng.lat();
       const lng = e.latLng.lng();
       setMarkerPosition({ lat, lng });
-      
-      // Use Places service for better reverse geocoding if available
-      if (placesServiceRef.current) {
-        const request = {
-          location: new google.maps.LatLng(lat, lng),
-          radius: 100
-        };
-        
-        placesServiceRef.current.nearbySearch(request, (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
-            placesServiceRef.current?.getDetails(
-              { placeId: results[0].place_id as string },
-              (placeResult, placeStatus) => {
-                if (placeStatus === google.maps.places.PlacesServiceStatus.OK && placeResult) {
-                  const formattedAddress = placeResult.formatted_address || '';
-                  setAddress(formattedAddress);
-                  onLocationSelect(formattedAddress, lat, lng);
-                } else {
-                  // Fall back to geocoder
-                  reverseGeocode(lat, lng);
-                }
-              }
-            );
-          } else {
-            // Fall back to geocoder
-            reverseGeocode(lat, lng);
-          }
-        });
-      } else if (geocoderRef.current) {
-        // Fall back to traditional geocoding
-        reverseGeocode(lat, lng);
-      }
+      reverseGeocode(lat, lng);
     }
-  }, [onLocationSelect, reverseGeocode]);
+  }, [reverseGeocode]);
+
 
   // Search for address and position map - with improved error handling
   const searchAddress = useCallback(() => {
@@ -317,7 +314,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             mapRef.current?.panTo({ lat, lng });
             mapRef.current?.setZoom(16);
             setAddress(formattedAddress);
-            onLocationSelect(formattedAddress, lat, lng);
+            onLocationSelect("Searched Address", formattedAddress, lat, lng);
             
             toast({
               title: "Location Found",
