@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, ShoppingCart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Cart } from '@/components/Cart';
+import CartSidebar from '@/components/CartSidebar';
 import { useCart } from '@/hooks/use-cart';
-import { LocationPicker } from '@/components/LocationPicker';
+import LocationPicker from '@/components/LocationPicker';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,8 +45,6 @@ const Navbar = () => {
 
           {/* Right side icons */}
           <div className="flex items-center space-x-4">
-            <LocationPicker />
-            
             <Button
               variant="ghost"
               size="icon"
@@ -117,7 +116,7 @@ const Navbar = () => {
       )}
 
       {/* Cart Sidebar */}
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </nav>
   );
 };
