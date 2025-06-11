@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface DrinkItem {
@@ -16,7 +17,7 @@ export interface CartItem extends DrinkItem {
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (drink: DrinkItem) => void;
+  addToCart: (drink: DrinkItem, options?: string) => void;
   removeFromCart: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
@@ -33,6 +34,8 @@ export const useCart = () => {
   }
   return context;
 };
+
+export { CartContext };
 
 interface CartProviderProps {
   children: ReactNode;
