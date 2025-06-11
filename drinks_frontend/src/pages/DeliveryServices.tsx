@@ -84,7 +84,7 @@ const DeliveryServices = () => {
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               More Than Just Drinks
-              <span className="text-xl font-bold barrush-gradient-text">We Deliver Everything</span>
+              <span className="text-4xl md:text-6xl font-bold barrush-gradient-text">We Deliver Everything</span>
             </h1>
             <p className="text-lg md:text-xl mb-10 text-white/90 max-w-3xl mx-auto">
               From premium beverages to groceries, documents to packages - we're your trusted delivery partner 
