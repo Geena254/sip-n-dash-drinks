@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Tag, Grid3X3 } from 'lucide-react';
+import { ShoppingCart, Menu, X, Tag, Grid3X3, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const Navbar: React.FC = () => {
   const { itemCount } = useCart();
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAdminLink, setShowAdminLink] = useState(false);
   const [logoHoverTimer, setLogoHoverTimer] = useState<NodeJS.Timeout | null>(null);
@@ -98,6 +100,28 @@ const Navbar: React.FC = () => {
               <Grid3X3 size={16} />
               Delivery Services
             </Link>
+
+            {/* Add Auth Links */}
+            {user ? (
+              <div className="flex items-center space-x-2 ml-4">
+                <Link to="/admin" className="text-gray-700 hover:text-primary transition-colors flex items-center gap-1">
+                  <User size={16} />
+                  Admin
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => signOut()}
+                  className="text-gray-700"
+                >
+                  Log Out
+                </Button>
+              </div>
+            ) : (
+              <Link to="/auth" className="ml-4 text-gray-700 hover:text-primary transition-colors">
+                Log In
+              </Link>
+            )}
 
             <Link to="/cart" className="ml-1">
               <Button variant="ghost" className="relative">

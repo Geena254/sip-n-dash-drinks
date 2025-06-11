@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabaseAPI } from '@/service/supabaseService';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useAuth } from '@/context/authContext';
+import ProductImageGenerator from '@/components/ProductImageGenerator';
 
 interface Order {
   id: string;
@@ -24,6 +25,7 @@ const Admin = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const { user } = useAuth(); // Add this line to use the auth context
 
   useEffect(() => {
     fetchData();
@@ -61,7 +63,16 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div>
+            {user && (
+              <div className="text-sm text-gray-600 mb-2">
+                Logged in as: {user.email}
+              </div>
+            )}
+          </div>
+        </div>
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -186,6 +197,17 @@ const Admin = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Add Product Image Generator Component */}
+        <div className="mt-8">
+          <ProductImageGenerator 
+            products={products.filter((p: any) => !p.image_url || p.image_url === '/placeholder.svg')}
+            onImageGenerated={(productId, imageUrl) => {
+              console.log(`Generated image for product ${productId}: ${imageUrl}`);
+              // In a real app, you'd update the product in your database
+            }}
+          />
+        </div>
       </div>
     </div>
   );
