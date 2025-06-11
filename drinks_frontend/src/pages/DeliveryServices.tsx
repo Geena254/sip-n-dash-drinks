@@ -49,7 +49,7 @@ const DeliveryServices = () => {
   ];
 
   const stats = [
-    { icon: <Users className="h-6 w-6" />, value: "50,000+", label: "Happy Customers" },
+    { icon: <Users className="h-6 w-6" />, value: "50+", label: "Happy Customers" },
     { icon: <Truck className="h-6 w-6" />, value: "15-45", label: "Minutes Average Delivery" },
     { icon: <Star className="h-6 w-6" />, value: "4.9/5", label: "Customer Rating" },
     { icon: <Award className="h-6 w-6" />, value: "99.5%", label: "On-Time Delivery" }
@@ -80,15 +80,15 @@ const DeliveryServices = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="outline" className="bg-white/10 backdrop-blur-sm text-white mb-6 text-sm px-4 py-2">
-              🚀 Fastest Delivery in Coast Region
+              🚀 Fastest Delivery in KILIFI.
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               More Than Just Drinks
-              <span className="block text-secondary">We Deliver Everything</span>
+              <span className="text-xl font-bold barrush-gradient-text">We Deliver Everything</span>
             </h1>
             <p className="text-lg md:text-xl mb-10 text-white/90 max-w-3xl mx-auto">
               From premium beverages to groceries, documents to packages - we're your trusted delivery partner 
-              across the beautiful Coastal region of Kenya.
+              across Kilifi County and it's environs.
             </p>
             
             {/* Stats Row */}
@@ -109,7 +109,7 @@ const DeliveryServices = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="default" className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-3">
                 <Phone className="mr-2 h-5 w-5" />
-                Call Now: 0700 000 000
+                Call Now: +254 796 676 253
               </Button>
               <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10 text-lg px-8 py-3">
                 Get Instant Quote
@@ -168,7 +168,7 @@ const DeliveryServices = () => {
       <div className="bg-gradient-to-br from-gray-50 to-gray-100 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Choose BarRush Delivery?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Why Choose BarRush Services?</h2>
             <p className="text-muted-foreground text-lg">Experience the difference with our premium delivery service</p>
           </div>
 
@@ -192,7 +192,7 @@ const DeliveryServices = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Delivery Coverage Area</h2>
-          <p className="text-muted-foreground text-lg">We deliver across the Coast region and surrounding areas</p>
+          <p className="text-muted-foreground text-lg">We deliver across the Kilifi region and surrounding areas</p>
         </div>
 
         <Card className="overflow-hidden">
@@ -213,7 +213,7 @@ const DeliveryServices = () => {
             <div className="mt-8 p-6 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg">
               <p className="text-center text-muted-foreground">
                 <strong>Don't see your area?</strong> Contact us - we're always expanding our coverage! 
-                Call us at <span className="text-primary font-semibold">0700 000 000</span> to check availability.
+                Call us at <span className="text-primary font-semibold">+254 796 676 253</span> to check availability.
               </p>
             </div>
           </CardContent>
@@ -233,7 +233,7 @@ const DeliveryServices = () => {
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <Button size="lg" className="text-lg px-8 py-4">
                   <Phone className="mr-2 h-5 w-5" />
-                  Call: 0700 000 000
+                  Call: +254 796 676 253
                 </Button>
                 <Button size="lg" variant="outline" className="text-lg px-8 py-4">
                   WhatsApp Us
