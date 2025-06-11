@@ -1,77 +1,96 @@
 import { Resend } from 'resend';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { EmailQueue } from '../../lib/emailQueue';
+import { EmailQueue } from '../../src/lib/emailQueue';
+import { Handler } from '@netlify/functions';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Initialize email queue
-const emailQueue = new EmailQueue({
-  maxRetries: 3,
-  retryDelay: (attempt) => Math.pow(2, attempt) * 1000, // Exponential backoff
-  processCallback: async (job) => {
-    try {
-      const response = await resend.emails.send({
-        from: 'Barrush KE <info@barrush.co.ke>',
-        to: [job.recipient],
-        subject: job.subject,
-        html: job.htmlContent,
-      });
-      return { success: true, data: response };
-    } catch (error) {
-      throw error;
-    }
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+  options?: string;
+}
+
+interface OrderData {
+  orderId: string | number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  deliveryAddress: string;
+  deliveryArea: string;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryFee: number;
+  tax: number;
+  total: number;
+  deliveryTime?: string;
+  paymentMethod?: string;
+}
+
+interface SendOrderEmailRequestBody {
+  emailType: 'business' | 'customer';
+  orderData: OrderData;
+}
+
+const handler: Handler = async (
+  event: { httpMethod: string; body?: string },
+  context: any
+): Promise<{
+  statusCode: number;
+  body: string;
+}> => {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
   }
-});
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const { emailType, orderData }: SendOrderEmailRequestBody = JSON.parse(event.body || '{}');
 
-  const { emailType, orderData } = req.body;
-
-  // Validate input
   if (!emailType || !orderData?.orderId) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing required fields' }),
+    };
+  }
+
+  const isBusinessEmail: boolean = emailType === 'business';
+  const recipient: string | undefined = isBusinessEmail 
+    ? process.env.BUSINESS_EMAIL
+    : orderData.customerEmail;
+
+  if (!recipient) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'No recipient email' }),
+    };
   }
 
   try {
-    const isBusinessEmail = emailType === 'business';
-    const recipient = isBusinessEmail 
-      ? process.env.BUSINESS_EMAIL!
-      : orderData.customerEmail;
-
-    if (!recipient) {
-      return res.status(400).json({ error: 'No recipient email' });
-    }
-
-    // Add to queue
-    const jobId = await emailQueue.addJob({
-      recipient,
+    const emailResponse = await resend.emails.send({
+      from: 'Barrush KE <info@barrush.co.ke>',
+      to: [recipient],
       subject: isBusinessEmail
         ? `New Order #${orderData.orderId}`
         : `Order Confirmation #${orderData.orderId}`,
-      htmlContent: buildEmailTemplate(orderData, isBusinessEmail),
-      metadata: { orderId: orderData.orderId }
+      html: buildEmailTemplate(orderData, isBusinessEmail),
     });
 
-    return res.status(202).json({ 
-      success: true,
-      jobId,
-      message: 'Email queued for delivery'
-    });
-
-  } catch (error) {
-    console.error('Email queueing error:', error);
-    return res.status(500).json({ 
-      error: 'Failed to queue email',
-      details: error instanceof Error ? error.message : String(error)
-    });
+    return {
+      statusCode: 202,
+      body: JSON.stringify({ success: true, data: emailResponse }),
+    };
+  } catch (error: any) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message || 'Failed to send email' }),
+    };
   }
-}
+};
+
+export { handler };
 
 function buildEmailTemplate(order: any, isBusinessEmail: boolean) {
   return `

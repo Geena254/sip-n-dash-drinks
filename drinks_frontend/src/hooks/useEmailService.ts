@@ -1,7 +1,7 @@
 export const useEmailService = () => {
   const sendOrderEmail = async (emailType: 'business' | 'customer', orderData: any) => {
     try {
-      const response = await fetch('/api/send-order-email', {
+      const response = await fetch('/.netlify/functions/send-order-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailType, orderData }),

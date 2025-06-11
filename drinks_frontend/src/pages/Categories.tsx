@@ -198,25 +198,50 @@ const Categories: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-12">
         {categories.map((category) => {
           const isActive = activeCategory === category.name;
           return (
             <Card
               key={category.id}
-              className={`cursor-pointer transition-all transform hover:-translate-y-1 ${isActive ? 'border-primary shadow-md' : ''}`}
+              className={`cursor-pointer transition-all transform hover:-translate-y-1 ${isActive ? 'border-primary shadow-md' : ''} p-2`}
               onClick={() => handleCategoryClick(category.name || '')}
             >
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">{category.name}</CardTitle>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-base font-medium">{category.name}</CardTitle>
               </CardHeader>
-              <CardContent className="pb-3">
-                <p className="text-sm text-muted-foreground">{category.description}</p>
+              <CardContent className="pb-2">
+                <p className="text-xs text-muted-foreground line-clamp-2">{category.description}</p>
               </CardContent>
-              <CardFooter className="pt-0 flex justify-between">
-                <Badge variant={isActive ? "default" : "outline"}>{category.product_count || 0} items</Badge>
-                <Button variant={isActive ? "secondary" : "ghost"} size="sm" className="text-xs">
-                  {isActive ? 'Selected' : 'View All'}
+              <CardFooter className="pt-0 flex justify-between items-center">
+                <Badge variant={isActive ? "default" : "outline"} className="text-[10px]">
+                  {category.product_count || 0} items
+                </Badge>
+                <Button
+                  variant={isActive ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-6 w-6"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
                 </Button>
               </CardFooter>
             </Card>

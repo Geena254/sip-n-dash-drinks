@@ -63,7 +63,7 @@ const Checkout: React.FC = () => {
   const paymentMethods = [
     { id: 'mpesa', label: 'MPESA', icon: '/icons/mpesa.png', description: 'Pay via MPESA mobile money' },
     { id: 'card', label: 'Card', icon: '/icons/card.png', description: 'Pay with credit/debit card' },
-    { id: 'paypal', label: 'PayPal', icon: '/icons/paypal.png', description: 'Pay with PayPal' },
+    { id: 'paypal', label: 'PayPal', icon: 'https://www.flaticon.com/free-icons/paypal', description: 'Pay with PayPal' },
   ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -371,13 +371,18 @@ const Checkout: React.FC = () => {
                     )}
                   </>
                 ) : (
-                  <Input
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    placeholder="Full delivery address"
-                    required
-                  />
+                  <>
+                    <Input
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      placeholder="Full delivery address"
+                      required
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      Please enter your full delivery address or a nearby known area.
+                    </p>
+                  </>
                 )}
               </div>
               
