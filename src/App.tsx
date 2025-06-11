@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './components/ui/theme-provider';
@@ -25,7 +26,7 @@ function App() {
           <div className="min-h-screen bg-background">
             <AgeVerificationDialog />
             <Navbar />
-            <main className="pt-16">
+            <main>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/categories" element={<Categories />} />
