@@ -28,10 +28,6 @@ const Index = () => {
           supabaseAPI.getOffers()
         ]);
         
-        console.log("Index - Categories:", categoriesData);
-        console.log("Index - Drinks:", drinksData);
-        console.log("Index - Offers:", offersData);
-        
         // Calculate product count for each category
         const categoriesWithCount = categoriesData.map(category => {
           const productCount = drinksData.filter(drink => {

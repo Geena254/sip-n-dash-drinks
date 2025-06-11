@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,9 +41,10 @@ const DeliveryServices = () => {
   ];
 
   const coverage = [
-    "Nairobi CBD", "Westlands", "Karen", "Kilimani", "Lavington", 
-    "Kileleshwa", "Parklands", "Kasarani", "Embakasi", "Donholm",
-    "South B", "South C", "Langata", "Runda", "Muthaiga"
+    "Kilifi Town", "Bofa", "Mnarani", "Tezo", "Malindi", "Mtondia", "Watamu", "Gede", "Kakuyuni", "Mida Creek",
+    "Gede Ruins", "Mambrui", "Kakuyuni", "Mtwapa", "Vipingo", "Shanzu", "Nyali", "Kisauni", "Mombasa Island",
+    "Likoni", "Diani", "Bamburi", "Kongowea", "Mtwapa Creek", "Kilifi Creek", "Gede Forest", "Watamu Marine Park",
+    "Malindi Marine Park",
   ];
 
   return (
