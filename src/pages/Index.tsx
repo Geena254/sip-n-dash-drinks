@@ -19,17 +19,26 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        console.log("Fetching data for Index page...");
+        
         const [categoriesData, drinksData, offersData] = await Promise.all([
           supabaseAPI.getCategories(),
           supabaseAPI.getProducts(),
           supabaseAPI.getOffers()
         ]);
         
+        console.log("Index - Categories:", categoriesData);
+        console.log("Index - Drinks:", drinksData);
+        console.log("Index - Offers:", offersData);
+        
         // Calculate product count for each category
         const categoriesWithCount = categoriesData.map(category => {
           const productCount = drinksData.filter(drink => {
             return drink.category_id === category.id;
           }).length;
+          
+          console.log(`Index - Category ${category.name} has ${productCount} products`);
           
           return {
             ...category,

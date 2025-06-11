@@ -16,32 +16,28 @@ const Categories: React.FC = () => {
   const [drinks, setDrinks] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-
-  const groupedDrinks = drinks.reduce<Record<string, Product[]>>((acc, drink) => {
-    const categoryName = typeof drink.category === 'object' && drink.category !== null 
-      ? drink.category.name 
-      : typeof drink.category === 'string' 
-        ? drink.category 
-        : 'Uncategorized';
-    
-    if (!acc[categoryName]) acc[categoryName] = [];
-    acc[categoryName].push(drink);
-    return acc;
-  }, {});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [fetchedDrinks, fetchedCategories] = await Promise.all([
-          supabaseAPI.getProducts(),
-          supabaseAPI.getCategories()
+        setLoading(true);
+        console.log("Fetching categories and products...");
+        
+        const [fetchedCategories, fetchedDrinks] = await Promise.all([
+          supabaseAPI.getCategories(),
+          supabaseAPI.getProducts()
         ]);
+        
+        console.log("Fetched categories:", fetchedCategories);
+        console.log("Fetched drinks:", fetchedDrinks);
         
         setDrinks(fetchedDrinks);
         
-        // Calculate product count for each category based on category_id
+        // Calculate product count for each category
         const categoriesWithCount = fetchedCategories.map(category => {
           const productCount = fetchedDrinks.filter(drink => drink.category_id === category.id).length;
+          console.log(`Category ${category.name} has ${productCount} products`);
           
           return {
             ...category,
@@ -52,6 +48,8 @@ const Categories: React.FC = () => {
         setCategories(categoriesWithCount);
       } catch (err) {
         console.error("🔥 Error fetching data:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -64,6 +62,21 @@ const Categories: React.FC = () => {
   };
 
   const lowerSearch = searchTerm.toLowerCase();
+
+  // Group drinks by category name
+  const groupedDrinks = drinks.reduce<Record<string, Product[]>>((acc, drink) => {
+    const categoryName = typeof drink.category === 'object' && drink.category !== null 
+      ? drink.category.name 
+      : typeof drink.category === 'string' 
+        ? drink.category 
+        : 'Uncategorized';
+    
+    if (!acc[categoryName]) acc[categoryName] = [];
+    acc[categoryName].push(drink);
+    return acc;
+  }, {});
+
+  console.log("Grouped drinks:", groupedDrinks);
 
   const categoryDrinks = activeCategory && groupedDrinks[activeCategory]
     ? groupedDrinks[activeCategory]
@@ -171,6 +184,17 @@ const Categories: React.FC = () => {
     
     return dots;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading categories and products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">

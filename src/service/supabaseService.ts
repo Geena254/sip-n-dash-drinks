@@ -63,67 +63,60 @@ export const supabaseAPI = {
   },
 
   async getProducts(): Promise<Product[]> {
-    const { data, error } = await supabase
+    // First try the simple query to get all products
+    const { data: products, error } = await supabase
       .from('Products')
-      .select(`
-        *,
-        Categories!Products_category_id_fkey (
-          id,
-          name,
-          description
-        )
-      `)
+      .select('*')
       .order('name')
 
     if (error) {
       console.error('Error fetching products:', error);
-      // If the foreign key query fails, try a simpler query
-      const { data: simpleData, error: simpleError } = await supabase
-        .from('Products')
-        .select('*')
-        .order('name')
-      
-      if (simpleError) {
-        console.error('Error with simple query:', simpleError);
-        throw simpleError;
-      }
-      
-      return simpleData?.map(product => ({
-        ...product,
-        category: product.category || 'Uncategorized'
-      })) ?? []
+      throw error;
     }
-    return data ?? []
+
+    if (!products) return [];
+
+    // Get all categories to map names
+    const { data: categories } = await supabase
+      .from('Categories')
+      .select('*');
+
+    // Map category names to products
+    const productsWithCategories = products.map(product => {
+      const category = categories?.find(cat => cat.id === product.category_id);
+      return {
+        ...product,
+        category: category ? { id: category.id, name: category.name, description: category.description } : 'Uncategorized'
+      };
+    });
+
+    return productsWithCategories;
   },
 
   async getProductsByCategory(categoryId: number): Promise<Product[]> {
-    const { data, error } = await supabase
+    const { data: products, error } = await supabase
       .from('Products')
-      .select(`
-        *,
-        Categories!Products_category_id_fkey (
-          id,
-          name,
-          description
-        )
-      `)
+      .select('*')
       .eq('category_id', categoryId)
 
     if (error) {
       console.error('Error fetching products by category:', error);
-      // Fallback to simple query
-      const { data: simpleData, error: simpleError } = await supabase
-        .from('Products')
-        .select('*')
-        .eq('category_id', categoryId)
-      
-      if (simpleError) throw simpleError;
-      return simpleData?.map(product => ({
-        ...product,
-        category: product.category || 'Uncategorized'
-      })) ?? []
+      throw error;
     }
-    return data ?? []
+
+    if (!products) return [];
+
+    // Get category details
+    const { data: category } = await supabase
+      .from('Categories')
+      .select('*')
+      .eq('id', categoryId)
+      .single();
+
+    return products.map(product => ({
+      ...product,
+      category: category ? { id: category.id, name: category.name, description: category.description } : 'Uncategorized'
+    }));
   },
 
   async getCocktailRecipes(): Promise<CocktailRecipe[]> {
