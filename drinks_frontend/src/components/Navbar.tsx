@@ -55,10 +55,10 @@ const Navbar: React.FC = () => {
             <div className="relative" onMouseEnter={handleLogoMouseEnter} onMouseLeave={handleLogoMouseLeave}>
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full barrush-gradient-bg flex items-center justify-center text-white font-bold text-lg">
-                  B
+                  A
                 </div>
                 <span className="text-xl font-bold barrush-gradient-text">
-                  BarRush
+                  AppyDrop
                 </span>
               </Link>
               {showAdminLink && (

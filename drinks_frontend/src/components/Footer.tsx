@@ -13,9 +13,9 @@ const Footer: React.FC = () => {
             {/* Brand section */}
             <div>
                 <span className="text-xl font-bold barrush-gradient-text">
-                    Booze To You
+                    Drop Appy to you
                 </span>
-                <p className="text-gray-600 mb-4">Your one-stop solution for all your drink needs.</p>
+                <p className="text-gray-600 mb-4">Your one-stop solution for all your delivery needs.</p>
                 <div className="flex space-x-4 mt-4">
                     <a href="#" className="text-purple-500 hover:text-purple-700 transition-colors">
                         <FaFacebook size={20} />
@@ -82,7 +82,7 @@ const Footer: React.FC = () => {
             {/* Bottom section */}
             <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm mb-4 md:mb-0">
-                © {currentYear} BarRush. All rights reserved.
+                © {currentYear} AppyDrop. All rights reserved.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm">
                 <a href="#" className="text-gray-500 hover:text-purple-700 transition-colors">Privacy Policy</a>
